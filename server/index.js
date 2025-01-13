@@ -22,10 +22,13 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/investments', require('./routes/investments'));
 app.use('/api/admin', require('./routes/admin'));
 
-// MongoDB connection
-mongoose.connect(process.env.MONGODB_URI, {
+// MongoDB connection with specific URI
+const MONGODB_URI = 'mongodb+srv://alex:DnulM3HXrLTI6hQZ@cluster0.oc7yv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
+
+mongoose.connect(MONGODB_URI, {
   useNewUrlParser: true,
-  useUnifiedTopology: true
+  useUnifiedTopology: true,
+  dbName: 'blackkey'
 })
 .then(() => console.log('MongoDB bağlantısı başarılı'))
 .catch(err => console.error('MongoDB bağlantı hatası:', err));
