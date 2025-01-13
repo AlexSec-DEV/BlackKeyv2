@@ -1,0 +1,176 @@
+BLACK KEY - KURULUM KILAVUZU
+============================
+
+1. GENEL GEREKSINIMLER
+----------------------
+- Node.js (v16 veya üzeri)
+- MongoDB (v4.4 veya üzeri)
+- Git
+- Domain (örn: blackkey.com)
+- VPS/Hosting (Ubuntu 20.04 LTS önerilen)
+
+2. DOMAIN VE HOSTING AYARLARI
+----------------------------
+1. Domain satın alın (örn: blackkey.com)
+2. A kaydı oluşturun:
+   - @ -> VPS IP adresi
+   - www -> VPS IP adresi
+3. SSL sertifikası alın (Let's Encrypt önerilen)
+
+3. SUNUCU HAZIRLIK
+-----------------
+1. Sunucuya SSH ile bağlanın
+2. Gerekli paketleri yükleyin:
+   ```bash
+   sudo apt update
+   sudo apt upgrade
+   sudo apt install nginx nodejs npm mongodb
+   ```
+3. Node.js'i güncelleyin:
+   ```bash
+   curl -fsSL https://deb.nodesource.com/setup_16.x | sudo -E bash -
+   sudo apt-get install -y nodejs
+   ```
+4. MongoDB servisini başlatın:
+   ```bash
+   sudo systemctl start mongodb
+   sudo systemctl enable mongodb
+   ```
+
+4. PROJE KURULUMU
+----------------
+1. Projeyi sunucuya klonlayın:
+   ```bash
+   git clone [PROJE_REPO_URL]
+   cd [PROJE_KLASÖRÜ]
+   ```
+
+2. Backend kurulumu:
+   ```bash
+   cd server
+   npm install
+   ```
+   
+   .env dosyası oluşturun:
+   ```
+   PORT=5000
+   MONGODB_URI=mongodb://localhost:27017/blackkey
+   JWT_SECRET=güvenli-bir-anahtar-yazın
+   ```
+
+3. Frontend kurulumu:
+   ```bash
+   cd ../client
+   npm install
+   ```
+   
+   .env dosyası oluşturun:
+   ```
+   REACT_APP_API_URL=https://api.blackkey.com
+   ```
+
+5. NGINX YAPILANDIRMASI
+----------------------
+1. Frontend için yapılandırma:
+   ```nginx
+   server {
+       listen 80;
+       server_name blackkey.com www.blackkey.com;
+       
+       location / {
+           root /var/www/blackkey/client/build;
+           try_files $uri $uri/ /index.html;
+       }
+   }
+   ```
+
+2. Backend için yapılandırma:
+   ```nginx
+   server {
+       listen 80;
+       server_name api.blackkey.com;
+       
+       location / {
+           proxy_pass http://localhost:5000;
+           proxy_http_version 1.1;
+           proxy_set_header Upgrade $http_upgrade;
+           proxy_set_header Connection 'upgrade';
+           proxy_set_header Host $host;
+           proxy_cache_bypass $http_upgrade;
+       }
+   }
+   ```
+
+6. PROJEYI DERLEME VE BAŞLATMA
+-----------------------------
+1. Frontend'i derleyin:
+   ```bash
+   cd client
+   npm run build
+   ```
+
+2. Backend'i başlatın:
+   ```bash
+   cd server
+   pm2 start index.js --name blackkey-backend
+   ```
+
+3. Frontend dosyalarını web sunucusuna kopyalayın:
+   ```bash
+   sudo cp -r client/build/* /var/www/blackkey/
+   ```
+
+7. SSL SERTIFIKASI KURULUMU
+--------------------------
+```bash
+sudo apt install certbot python3-certbot-nginx
+sudo certbot --nginx -d blackkey.com -d www.blackkey.com -d api.blackkey.com
+```
+
+8. GÜVENLIK ÖNLEMLERI
+--------------------
+1. Firewall yapılandırması:
+   ```bash
+   sudo ufw allow 22
+   sudo ufw allow 80
+   sudo ufw allow 443
+   sudo ufw enable
+   ```
+
+2. MongoDB güvenliği:
+   - Admin kullanıcı oluşturun
+   - Uzaktan erişimi kısıtlayın
+   - Güvenlik duvarı kuralları ekleyin
+
+9. BAKIM VE İZLEME
+-----------------
+1. Log dosyalarını düzenli kontrol edin
+2. Yedekleme planı oluşturun:
+   - MongoDB yedekleri
+   - Dosya sistemi yedekleri
+3. Performans izleme araçları kurun
+
+10. SORUN GIDERME
+---------------
+Yaygın sorunlar ve çözümleri:
+
+1. Bağlantı hataları:
+   - Nginx loglarını kontrol edin
+   - MongoDB bağlantısını test edin
+   - Port durumlarını kontrol edin
+
+2. Performans sorunları:
+   - Node.js bellek kullanımını izleyin
+   - MongoDB indekslerini optimize edin
+   - Nginx önbelleğini yapılandırın
+
+ÖNEMLI NOTLAR
+------------
+- Tüm şifreleri güvenli bir şekilde saklayın
+- Düzenli güvenlik güncellemeleri yapın
+- Yedekleme planını uygulayın
+- SSL sertifikasının süresini takip edin
+
+DESTEK
+------
+Teknik destek için: [DESTEK_EMAIL] 
