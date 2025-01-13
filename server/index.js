@@ -5,39 +5,21 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS options
-const corsOptions = {
-  origin: function (origin, callback) {
-    const allowedOrigins = ['https://black-keyv2.vercel.app', 'http://localhost:3000'];
-    if (!origin || allowedOrigins.indexOf(origin) !== -1) {
-      callback(null, true);
-    } else {
-      callback(new Error('CORS policy violation'));
-    }
-  },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
-  credentials: true,
-  preflightContinue: false,
-  optionsSuccessStatus: 204
-};
-
-// Enable CORS with options
-app.use(cors(corsOptions));
-
-// Handle CORS preflight requests
-app.options('*', cors(corsOptions));
+// Basic CORS configuration
+app.use(cors());
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// Add headers before the routes are defined
-app.use(function (req, res, next) {
-  res.setHeader('Access-Control-Allow-Origin', 'https://black-keyv2.vercel.app');
-  res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS, PUT, DELETE');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.setHeader('Access-Control-Allow-Credentials', true);
+// Simple headers middleware
+app.use((req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization');
+  if (req.method === 'OPTIONS') {
+    return res.status(200).end();
+  }
   next();
 });
 
@@ -51,7 +33,7 @@ mongoose.connect(process.env.MONGODB_URI)
   .then(() => console.log('MongoDB bağlantısı başarılı'))
   .catch(err => console.error('MongoDB bağlantı hatası:', err));
 
-const PORT = process.env.PORT || process.env.RAILWAY_PORT || 5000;
+const PORT = process.env.PORT || 5000;
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`Server ${PORT} portunda çalışıyor`);
 }); 
