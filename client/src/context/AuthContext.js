@@ -1,5 +1,6 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axios from 'axios';
+import API_URL from '../config/api';
 
 const AuthContext = createContext(null);
 
@@ -33,42 +34,33 @@ export const AuthProvider = ({ children }) => {
     }
   );
 
-  const register = async (formData) => {
+  const register = async (userData) => {
     try {
-      setLoading(true);
-      setError(null);
-      const res = await api.post('/auth/register', formData);
-      console.log('Kayıt cevabı:', res.data);
-      localStorage.setItem('token', res.data.token);
-      setToken(res.data.token);
-      setUser(res.data.user);
-      setLoading(false);
-      return true;
-    } catch (err) {
-      console.error('Kayıt hatası:', err);
-      setError(err.response?.data?.message || 'Kayıt sırasında bir hata oluştu');
-      setLoading(false);
-      return false;
+      const response = await axios.post(`${API_URL}/api/auth/register`, userData);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Kayıt hatası:', error);
+      throw error;
     }
   };
 
-  const login = async (formData) => {
+  const login = async (credentials) => {
     try {
-      setLoading(true);
-      setError(null);
-      console.log('Giriş isteği gönderiliyor:', formData);
-      const res = await api.post('/auth/login', formData);
-      console.log('Giriş cevabı:', res.data);
-      localStorage.setItem('token', res.data.token);
-      setToken(res.data.token);
-      setUser(res.data.user);
-      setLoading(false);
-      return true;
-    } catch (err) {
-      console.error('Giriş hatası:', err);
-      setError(err.response?.data?.message || 'Giriş sırasında bir hata oluştu');
-      setLoading(false);
-      return false;
+      const response = await axios.post(`${API_URL}/api/auth/login`, credentials);
+      if (response.data.token) {
+        localStorage.setItem('token', response.data.token);
+        setUser(response.data.user);
+        setIsAuthenticated(true);
+      }
+      return response.data;
+    } catch (error) {
+      console.error('Giriş hatası:', error);
+      throw error;
     }
   };
 
