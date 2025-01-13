@@ -6,15 +6,10 @@ require('dotenv').config();
 const app = express();
 
 // CORS configuration
-const corsOptions = {
-  origin: ['https://black-keyv2.vercel.app', 'http://localhost:3000'],
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true,
-  optionsSuccessStatus: 200
-};
-
-app.use(cors(corsOptions));
+app.use(cors({
+  origin: true,
+  credentials: true
+}));
 
 // Middleware
 app.use(express.json());
