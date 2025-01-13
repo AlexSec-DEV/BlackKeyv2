@@ -11,11 +11,10 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken] = useState(localStorage.getItem('token'));
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  const baseURL = process.env.REACT_APP_API_URL || 'http://localhost:5000/api';
-  
   const api = axios.create({
-    baseURL: baseURL,
+    baseURL: API_URL,
     headers: {
       'Content-Type': 'application/json'
     }
@@ -39,6 +38,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.post(`${API_URL}/api/auth/register`, userData);
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        setToken(response.data.token);
         setUser(response.data.user);
         setIsAuthenticated(true);
       }
@@ -54,6 +54,7 @@ export const AuthProvider = ({ children }) => {
       const response = await axios.post(`${API_URL}/api/auth/login`, credentials);
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
+        setToken(response.data.token);
         setUser(response.data.user);
         setIsAuthenticated(true);
       }
@@ -68,14 +69,19 @@ export const AuthProvider = ({ children }) => {
     localStorage.removeItem('token');
     setToken(null);
     setUser(null);
+    setIsAuthenticated(false);
   }, []);
 
   const loadUser = useCallback(async () => {
-    if (!token) return;
+    if (!token) {
+      setIsAuthenticated(false);
+      return;
+    }
     
     try {
       const res = await api.get('/auth/profile');
       setUser(res.data);
+      setIsAuthenticated(true);
     } catch (err) {
       console.error('Kullanıcı yükleme hatası:', err);
       setError(err.response?.data?.message || 'Kullanıcı bilgileri yüklenemedi');
@@ -102,6 +108,7 @@ export const AuthProvider = ({ children }) => {
     token,
     loading,
     error,
+    isAuthenticated,
     register,
     login,
     logout,
