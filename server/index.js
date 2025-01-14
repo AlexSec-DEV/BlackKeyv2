@@ -32,12 +32,12 @@ mongoose.connect(MONGODB_URI, {
 });
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', require('/routes/auth'));
 app.use('/api/investments', require('./routes/investments'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/payment', require('./routes/payment'));
-app.use('/api/balance', require('./routes/balance'));
-app.use('/api/transactions', require('./routes/transactions'));
+app.use('/api/admin', require('/routes/admin'));
+app.use('/api/payment', require('/routes/payment'));
+app.use('/api/balance', require('/routes/balance'));
+app.use('/api/transactions', require('/routes/transactions'));
 
 // Health check endpoint
 app.get('/', (req, res) => {
