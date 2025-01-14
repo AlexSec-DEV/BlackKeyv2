@@ -1,3 +1,3 @@
-export const API_URL = 'https://black-keyv2-api.vercel.app/api';
+export const API_URL = 'https://black-keyv2-api.vercel.app';
 
-export default API_URL;     
+export default API_URL; 
