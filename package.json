@@ -11,5 +11,8 @@
   },
   "engines": {
     "node": ">=14.0.0"
+  },
+  "dependencies": {
+    "cloudinary": "^2.5.1"
   }
-} 
+}
