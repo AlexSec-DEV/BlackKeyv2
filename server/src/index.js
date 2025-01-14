@@ -34,12 +34,12 @@ app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
 console.log('Static file path:', path.join(__dirname, 'uploads'));
 
 // API routes
-app.use('/api/auth', authRoutes);
-app.use('/api/investments', investmentRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/transactions', transactionRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/balance', balanceRoutes);
+app.use('/auth', authRoutes);
+app.use('/investments', investmentRoutes);
+app.use('/admin', adminRoutes);
+app.use('/transactions', transactionRoutes);
+app.use('/payment', paymentRoutes);
+app.use('/balance', balanceRoutes);
 
 // MongoDB bağlantısı
 mongoose.connect(process.env.MONGODB_URI)
