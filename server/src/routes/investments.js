@@ -1,183 +1,142 @@
 const express = require('express');
 const router = express.Router();
-const auth = require('../middleware/auth');
 const Investment = require('../models/Investment');
 const User = require('../models/User');
+const auth = require('../middleware/auth');
 
-// Yeni yatırım oluşturma
+// Kullanıcının yatırımlarını getir
+router.get('/my', auth, async (req, res) => {
+  try {
+    console.log('Fetching investments for user:', req.user._id);
+    const investments = await Investment.find({ user: req.user._id });
+    console.log('Found investments:', investments);
+    res.json(investments);
+  } catch (error) {
+    console.error('Yatırımları getirme hatası:', error);
+    res.status(500).json({ message: error.message });
+  }
+});
+
+// Yatırım yap
 router.post('/', auth, async (req, res) => {
   try {
     const { type, amount } = req.body;
-    const user = await User.findById(req.user.id);
+    console.log('Investment request:', { type, amount });
 
-    // Kasa bilgilerini al
-    const packageInfo = Investment.PACKAGES[type];
-    if (!packageInfo) {
-      return res.status(400).json({ message: 'Geçersiz kasa tipi' });
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
     }
 
-    // Miktar kontrolü
-    if (amount < packageInfo.minAmount || amount > packageInfo.maxAmount) {
-      return res.status(400).json({ 
-        message: `Bu kasa için yatırım miktarı ${packageInfo.minAmount} - ${packageInfo.maxAmount} AZN arasında olmalıdır` 
-      });
-    }
-
-    // Bakiye kontrolü
     if (user.balance < amount) {
       return res.status(400).json({ message: 'Yetersiz bakiye' });
     }
 
-    // Günlük getiri hesaplama (yatırımın %30'u)
-    const dailyReturn = (amount * 0.30) / 30;
-    const totalReturn = dailyReturn * 30;
+    const packages = {
+      SILVER: {
+        name: 'SILVER',
+        dailyReturn: 5,
+        minAmount: 5,
+        maxAmount: 100,
+        percentage: 7,
+        lockPeriod: 30,
+        xpPerInvestment: 18
+      },
+      GOLD: {
+        name: 'GOLD',
+        dailyReturn: 15,
+        minAmount: 50,
+        maxAmount: 500,
+        percentage: 10,
+        lockPeriod: 30,
+        xpPerInvestment: 18
+      },
+      PLATINUM: {
+        name: 'PLATINUM',
+        dailyReturn: 40,
+        minAmount: 100,
+        maxAmount: 1000,
+        percentage: 16,
+        lockPeriod: 30,
+        xpPerInvestment: 18
+      },
+      DIAMOND: {
+        name: 'DIAMOND',
+        dailyReturn: 80,
+        minAmount: 200,
+        maxAmount: 2000,
+        percentage: 25,
+        lockPeriod: 30,
+        xpPerInvestment: 18
+      },
+      MASTER: {
+        name: 'MASTER',
+        dailyReturn: 150,
+        minAmount: 500,
+        maxAmount: 5000,
+        percentage: 34,
+        lockPeriod: 30,
+        xpPerInvestment: 18
+      },
+      LEGENDARY: {
+        name: 'LEGENDARY',
+        dailyReturn: 1000,
+        minAmount: 1000,
+        maxAmount: 10000,
+        percentage: 40,
+        lockPeriod: 30,
+        xpPerInvestment: 18
+      }
+    };
 
-    // Bitiş tarihini hesapla (30 gün sonrası)
-    const endDate = new Date();
-    endDate.setDate(endDate.getDate() + 30);
-
-    // Yeni yatırım oluştur
-    const investment = new Investment({
-      user: req.user.id,
-      type,
-      amount,
-      dailyReturn,
-      totalReturn,
-      endDate
-    });
-
-    // Kullanıcı bakiyesini güncelle
-    user.balance -= amount;
-    
-    // XP ekle
-    user.xp += packageInfo.xpReward;
-    
-    // Level kontrolü
-    if (user.xp >= 100) {
-      user.level += 1;
-      user.xp = user.xp - 100;
+    const selectedPackage = packages[type];
+    if (!selectedPackage) {
+      return res.status(400).json({ message: 'Geçersiz paket' });
     }
 
-    await investment.save();
-    await user.save();
-
-    res.json(investment);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// Kullanıcının yatırımlarını getirme
-router.get('/my', auth, async (req, res) => {
-  try {
-    const investments = await Investment.find({ user: req.user.id });
-    res.json(investments);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// Yatırım detaylarını getirme
-router.get('/:id', auth, async (req, res) => {
-  try {
-    const investment = await Investment.findById(req.params.id);
-    
-    if (!investment) {
-      return res.status(404).json({ message: 'Yatırım bulunamadı' });
-    }
-
-    // Yatırımın sahibi olup olmadığını kontrol et
-    if (investment.user.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'Yetkisiz erişim' });
-    }
-
-    res.json(investment);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// Yatırım durumunu güncelleme (30 gün sonra)
-router.put('/:id/complete', auth, async (req, res) => {
-  try {
-    const investment = await Investment.findById(req.params.id);
-    
-    if (!investment) {
-      return res.status(404).json({ message: 'Yatırım bulunamadı' });
-    }
-
-    // Yatırımın sahibi olup olmadığını kontrol et
-    if (investment.user.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'Yetkisiz erişim' });
-    }
-
-    // Süre kontrolü
-    const now = new Date();
-    if (now < investment.endDate) {
-      return res.status(400).json({ 
-        message: 'Bu yatırım henüz tamamlanmadı',
-        remainingDays: Math.ceil((investment.endDate - now) / (1000 * 60 * 60 * 24))
+    if (amount < selectedPackage.minAmount || amount > selectedPackage.maxAmount) {
+      return res.status(400).json({
+        message: `Yatırım tutarı ${selectedPackage.minAmount} AZN ile ${selectedPackage.maxAmount} AZN arasında olmalıdır`
       });
     }
 
-    if (investment.status === 'COMPLETED') {
-      return res.status(400).json({ message: 'Bu yatırım zaten tamamlandı' });
-    }
-
-    // Kullanıcıyı bul ve bakiyesini güncelle
-    const user = await User.findById(req.user.id);
-    user.balance += investment.amount + investment.totalReturn;
-    
-    // Yatırım durumunu güncelle
-    investment.status = 'COMPLETED';
-
-    await investment.save();
-    await user.save();
-
-    res.json(investment);
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
-  }
-});
-
-// Test için yatırım süresini kısaltma (sadece test amaçlı)
-router.post('/test/speed-up/:id', auth, async (req, res) => {
-  try {
-    const investment = await Investment.findById(req.params.id);
-    
-    if (!investment) {
-      return res.status(404).json({ message: 'Yatırım bulunamadı' });
-    }
-
-    // Yatırımın sahibi olup olmadığını kontrol et
-    if (investment.user.toString() !== req.user.id) {
-      return res.status(401).json({ message: 'Yetkisiz erişim' });
-    }
-
-    // Başlangıç tarihini 29 dakika öncesine ayarla (1 dakika kalsın)
-    const newStartDate = new Date(Date.now() - (29 * 60 * 1000)); // 29 dakika önce
-    investment.startDate = newStartDate;
-
-    // Bitiş tarihini 1 dakika sonraya ayarla
-    const newEndDate = new Date(Date.now() + (1 * 60 * 1000)); // 1 dakika sonra
-    investment.endDate = newEndDate;
-
-    await investment.save();
-    
-    res.json({ 
-      message: 'Yatırım süresi güncellendi',
-      newStartDate,
-      newEndDate,
-      remainingMinutes: 1,
-      progress: '96.67%' // (29/30) * 100
+    const investment = new Investment({
+      user: user._id,
+      type,
+      amount,
+      dailyReturn: (amount * selectedPackage.percentage) / 100 / 30,
+      startDate: new Date(),
+      endDate: new Date(Date.now() + selectedPackage.lockPeriod * 24 * 60 * 60 * 1000),
+      status: 'active'
     });
-  } catch (err) {
-    console.error(err.message);
-    res.status(500).send('Server error');
+
+    user.balance -= amount;
+    user.xp += selectedPackage.xpPerInvestment;
+
+    // Level atlama kontrolü
+    if (user.xp >= user.nextLevelXp) {
+      user.level += 1;
+      user.nextLevelXp = user.nextLevelXp * 2;
+    }
+
+    await Promise.all([investment.save(), user.save()]);
+
+    console.log('Investment created:', investment);
+    console.log('User updated:', user);
+
+    res.status(201).json({
+      message: 'Yatırım başarıyla yapıldı',
+      investment,
+      user: {
+        balance: user.balance,
+        xp: user.xp,
+        level: user.level,
+        nextLevelXp: user.nextLevelXp
+      }
+    });
+  } catch (error) {
+    console.error('Yatırım yapma hatası:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 

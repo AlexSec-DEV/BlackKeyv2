@@ -5,16 +5,27 @@ const userSchema = new mongoose.Schema({
     username: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true
     },
     email: {
         type: String,
         required: true,
-        unique: true
+        unique: true,
+        trim: true,
+        lowercase: true
     },
     password: {
         type: String,
         required: true
+    },
+    isAdmin: {
+        type: Boolean,
+        default: false
+    },
+    isBlocked: {
+        type: Boolean,
+        default: false
     },
     balance: {
         type: Number,
@@ -28,14 +39,6 @@ const userSchema = new mongoose.Schema({
         type: Number,
         default: 0
     },
-    isAdmin: {
-        type: Boolean,
-        default: false
-    },
-    isBlocked: {
-        type: Boolean,
-        default: false
-    },
     nextLevelXp: {
         type: Number,
         default: 100
@@ -43,49 +46,20 @@ const userSchema = new mongoose.Schema({
     profileImage: {
         type: String,
         default: 'default-avatar.png'
-    },
-    phoneNumber: {
-        type: String,
-        default: ''
-    },
-    country: {
-        type: String,
-        default: ''
-    },
-    birthDate: {
-        type: Date,
-        default: null
-    },
-    boxes: [{
-        type: mongoose.Schema.Types.ObjectId,
-        ref: 'Box'
-    }]
+    }
 }, {
-    timestamps: true,
-    strict: true,
-    strictQuery: true
+    timestamps: true
 });
 
 userSchema.pre('save', async function(next) {
-    try {
-        if (this.isModified('password')) {
-            const salt = await bcrypt.genSalt(10);
-            this.password = await bcrypt.hash(this.password, salt);
-        }
-        next();
-    } catch (error) {
-        next(error);
+    if (this.isModified('password')) {
+        this.password = await bcrypt.hash(this.password, 10);
     }
+    next();
 });
 
 userSchema.methods.comparePassword = async function(candidatePassword) {
-    try {
-        return await bcrypt.compare(candidatePassword, this.password);
-    } catch (error) {
-        throw error;
-    }
+    return bcrypt.compare(candidatePassword, this.password);
 };
 
-const User = mongoose.model('users', userSchema);
-
-module.exports = User; 
+module.exports = mongoose.model('User', userSchema); 
