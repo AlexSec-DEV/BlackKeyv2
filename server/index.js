@@ -28,18 +28,12 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://alex:DnulM3HXrLTI6hQZ
   console.error('MongoDB connection error:', err);
 });
 
-// Import and register models
-const UserSchema = require('./src/models/User');
-const InvestmentSchema = require('./src/models/Investment');
-const TransactionSchema = require('./src/models/Transaction');
-const PaymentInfoSchema = require('./src/models/PaymentInfo');
-const FakeStatsSchema = require('./src/models/FakeStats');
-
-mongoose.model('User', UserSchema);
-mongoose.model('Investment', InvestmentSchema);
-mongoose.model('Transaction', TransactionSchema);
-mongoose.model('PaymentInfo', PaymentInfoSchema);
-mongoose.model('FakeStats', FakeStatsSchema);
+// Import models
+require('./src/models/User');
+require('./src/models/Investment');
+require('./src/models/Transaction');
+require('./src/models/PaymentInfo');
+require('./src/models/FakeStats');
 
 // Import routes
 const authRoutes = require('./src/routes/auth');
