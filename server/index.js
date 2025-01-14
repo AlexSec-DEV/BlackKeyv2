@@ -7,10 +7,15 @@ const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: ["https://black-keyv2-frontend.vercel.app"],
-    methods: ["GET", "POST", "PUT", "DELETE"],
-    credentials: true
+    origin: "https://black-keyv2-frontend.vercel.app",
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
+    credentials: true,
+    optionsSuccessStatus: 200
 }));
+
+// Handle preflight requests
+app.options('*', cors());
 
 // Middleware
 app.use(express.json());
