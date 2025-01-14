@@ -8,27 +8,27 @@
   ],
   "routes": [
     {
-      "src": "/auth/(.*)",
+      "src": "/api/auth/(.*)",
       "dest": "/index.js"
     },
     {
-      "src": "/investments/(.*)",
+      "src": "/api/investments/(.*)",
       "dest": "/index.js"
     },
     {
-      "src": "/admin/(.*)",
+      "src": "/api/admin/(.*)",
       "dest": "/index.js"
     },
     {
-      "src": "/payment/(.*)",
+      "src": "/api/payment/(.*)",
       "dest": "/index.js"
     },
     {
-      "src": "/balance/(.*)",
+      "src": "/api/balance/(.*)",
       "dest": "/index.js"
     },
     {
-      "src": "/transactions/(.*)",
+      "src": "/api/transactions/(.*)",
       "dest": "/index.js"
     },
     {
