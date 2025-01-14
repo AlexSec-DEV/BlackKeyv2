@@ -28,6 +28,13 @@ mongoose.connect(process.env.MONGODB_URI || 'mongodb+srv://alex:DnulM3HXrLTI6hQZ
   console.error('MongoDB connection error:', err);
 });
 
+// Import models
+require('./src/models/User');
+require('./src/models/Investment');
+require('./src/models/Transaction');
+require('./src/models/PaymentInfo');
+require('./src/models/FakeStats');
+
 // Import routes
 const authRoutes = require('./src/routes/auth');
 const investmentRoutes = require('./src/routes/investments');
