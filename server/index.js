@@ -37,12 +37,12 @@ const balanceRoutes = require('./src/routes/balance');
 const transactionRoutes = require('./src/routes/transactions');
 
 // Route middleware
-app.use('/api/auth', authRoutes);
-app.use('/api/investments', investmentRoutes);
-app.use('/api/admin', adminRoutes);
-app.use('/api/payment', paymentRoutes);
-app.use('/api/balance', balanceRoutes);
-app.use('/api/transactions', transactionRoutes);
+app.use('/auth', authRoutes);
+app.use('/investments', investmentRoutes);
+app.use('/admin', adminRoutes);
+app.use('/payment', paymentRoutes);
+app.use('/balance', balanceRoutes);
+app.use('/transactions', transactionRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
