@@ -32,12 +32,20 @@ mongoose.connect(MONGODB_URI, {
 });
 
 // Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/investments', require('./routes/investments'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/payment', require('./routes/payment'));
-app.use('/api/balance', require('./routes/balance'));
-app.use('/api/transactions', require('./routes/transactions'));
+const authRoutes = require('./src/routes/auth');
+const investmentRoutes = require('./src/routes/investments');
+const adminRoutes = require('./src/routes/admin');
+const paymentRoutes = require('./src/routes/payment');
+const balanceRoutes = require('./src/routes/balance');
+const transactionRoutes = require('./src/routes/transactions');
+
+// Use routes
+app.use('/api/auth', authRoutes);
+app.use('/api/investments', investmentRoutes);
+app.use('/api/admin', adminRoutes);
+app.use('/api/payment', paymentRoutes);
+app.use('/api/balance', balanceRoutes);
+app.use('/api/transactions', transactionRoutes);
 
 // Health check endpoint
 app.get('/', (req, res) => {
