@@ -11,7 +11,7 @@ const fs = require('fs');
 const auth = async (req, res, next) => {
   try {
     const token = req.header('Authorization').replace('Bearer ', '');
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'blackkey2024secret');
     const user = await User.findById(decoded.id);
 
     if (!user) {
@@ -152,7 +152,7 @@ router.post('/register', async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'blackkey2024secret',
       { expiresIn: '24h' }
     );
 
@@ -198,7 +198,7 @@ router.post('/login', async (req, res) => {
 
     const token = jwt.sign(
       { id: user._id },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || 'blackkey2024secret',
       { expiresIn: '24h' }
     );
 
