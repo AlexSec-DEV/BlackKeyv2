@@ -5,6 +5,7 @@ const User = require('../models/User');
 const Investment = require('../models/Investment');
 const Transaction = require('../models/Transaction');
 const PaymentInfo = require('../models/PaymentInfo');
+const FakeStats = require('../models/FakeStats');
 
 console.log('Admin routes being initialized...');
 
@@ -191,18 +192,11 @@ router.post('/withdrawals/:withdrawalId/:action', auth, isAdmin, async (req, res
   }
 });
 
-// Fake istatistikler için bir değişken
-let fakeStats = {
-  totalUsers: 5698,
-  activeUsers: 1756,
-  totalInvestment: 96854,
-  totalPayout: 25356
-};
-
 // Fake istatistikleri getir
 router.get('/fake-stats', auth, async (req, res) => {
   try {
-    res.json(fakeStats);
+    const stats = await FakeStats.getStats();
+    res.json(stats);
   } catch (err) {
     console.error('Fake stats error:', err);
     res.status(500).json({ message: 'Server error' });
@@ -214,14 +208,15 @@ router.put('/fake-stats', auth, isAdmin, async (req, res) => {
   try {
     const { totalUsers, activeUsers, totalInvestment, totalPayout } = req.body;
     
-    fakeStats = {
-      totalUsers: Number(totalUsers),
-      activeUsers: Number(activeUsers),
-      totalInvestment: Number(totalInvestment),
-      totalPayout: Number(totalPayout)
-    };
-
-    res.json(fakeStats);
+    const stats = await FakeStats.getStats();
+    stats.totalUsers = Number(totalUsers);
+    stats.activeUsers = Number(activeUsers);
+    stats.totalInvestment = Number(totalInvestment);
+    stats.totalPayout = Number(totalPayout);
+    stats.updatedAt = Date.now();
+    
+    await stats.save();
+    res.json(stats);
   } catch (err) {
     console.error('Fake stats update error:', err);
     res.status(500).json({ message: 'Server error' });
