@@ -1,27 +1,13 @@
 const express = require('express');
 const router = express.Router();
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
 const auth = require('../middleware/auth');
 const Transaction = require('../models/Transaction');
 const User = require('../models/User');
+const cloudinary = require('../config/cloudinary');
 
-// Makbuz yükleme ayarları
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    const dir = path.join(__dirname, '../uploads/receipts');
-    if (!fs.existsSync(dir)) {
-      fs.mkdirSync(dir, { recursive: true });
-    }
-    cb(null, dir);
-  },
-  filename: function(req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    cb(null, 'receipt-' + uniqueSuffix + path.extname(file.originalname));
-  }
-});
-
+// Geçici depolama için multer ayarları
+const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
   limits: {
@@ -30,7 +16,7 @@ const upload = multer({
   fileFilter: function(req, file, cb) {
     const filetypes = /jpeg|jpg|png/;
     const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(path.extname(file.originalname).toLowerCase());
+    const extname = filetypes.test(file.originalname.toLowerCase());
 
     if (mimetype && extname) {
       return cb(null, true);
@@ -51,12 +37,22 @@ router.post('/deposit', auth, upload.single('receipt'), async (req, res) => {
       return res.status(400).json({ message: 'Makbuz yüklemesi gerekli' });
     }
 
+    // Dosyayı base64'e çevir
+    const base64File = req.file.buffer.toString('base64');
+    const dataURI = `data:${req.file.mimetype};base64,${base64File}`;
+
+    // Cloudinary'ye yükle
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'receipts',
+      resource_type: 'auto'
+    });
+
     const transaction = new Transaction({
       user: req.user.id,
       type: 'DEPOSIT',
       amount: parseFloat(amount),
       paymentMethod,
-      receiptUrl: '/receipts/' + req.file.filename,
+      receiptUrl: result.secure_url,
       status: 'PENDING'
     });
 
@@ -65,9 +61,6 @@ router.post('/deposit', auth, upload.single('receipt'), async (req, res) => {
     res.status(201).json(transaction);
   } catch (error) {
     console.error('Para yatırma hatası:', error);
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
