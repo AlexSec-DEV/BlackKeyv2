@@ -1,45 +1,61 @@
 const express = require('express');
 const mongoose = require('mongoose');
 const cors = require('cors');
-require('dotenv').config();
+const path = require('path');
 
 const app = express();
 
 // CORS configuration
 app.use(cors({
-    origin: "https://black-keyv2-frontend.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
-    credentials: true,
-    optionsSuccessStatus: 200
+  origin: 'https://black-keyv2-frontend.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 }));
-
-// Handle preflight requests
-app.options('*', cors());
 
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // MongoDB connection
-mongoose.connect('mongodb+srv://alex:DnulM3HXrLTI6hQZ@cluster0.oc7yv.mongodb.net/blackkey?retryWrites=true&w=majority&appName=Cluster0');
+const MONGODB_URI = 'mongodb+srv://alex:DnulM3HXrLTI6hQZ@cluster0.oc7yv.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0';
 
-// Basic health check route
-app.get("/", (req, res) => {
-    res.json("Server is running");
+mongoose.connect(MONGODB_URI, {
+  useNewUrlParser: true,
+  useUnifiedTopology: true,
+  dbName: 'blackkey'
+}).then(() => {
+  console.log('MongoDB connection successful');
+}).catch(err => {
+  console.error('MongoDB connection error:', err);
 });
 
 // Routes
 app.use('/api/auth', require('./routes/auth'));
 app.use('/api/investments', require('./routes/investments'));
 app.use('/api/admin', require('./routes/admin'));
+app.use('/api/payment', require('./routes/payment'));
+app.use('/api/balance', require('./routes/balance'));
+app.use('/api/transactions', require('./routes/transactions'));
 
-// Vercel serverless function export
-if (process.env.VERCEL) {
-    module.exports = app;
-} else {
-    const PORT = process.env.PORT || 3000;
-    app.listen(PORT, () => {
-        console.log(`Server ${PORT} portunda çalışıyor`);
-    });
-} 
+// Health check endpoint
+app.get('/', (req, res) => {
+  res.json({ message: 'API is running' });
+});
+
+// Error handling middleware
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ message: 'Something went wrong!' });
+});
+
+// Handle 404
+app.use((req, res) => {
+  res.status(404).json({ message: 'Route not found' });
+});
+
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => {
+  console.log(`Server is running on port ${PORT}`);
+}); 
