@@ -1,6 +1,5 @@
 import React, { createContext, useState, useContext, useEffect, useCallback } from 'react';
 import axios from 'axios';
-import API_URL from '../config/api';
 
 const AuthContext = createContext(null);
 
@@ -14,7 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const api = axios.create({
-    baseURL: API_URL,
+    baseURL: '/api',
     headers: {
       'Content-Type': 'application/json'
     }
@@ -35,7 +34,7 @@ export const AuthProvider = ({ children }) => {
 
   const register = async (userData) => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/register`, userData);
+      const response = await axios.post('/auth/register', userData);
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         setToken(response.data.token);
@@ -51,7 +50,7 @@ export const AuthProvider = ({ children }) => {
 
   const login = async (credentials) => {
     try {
-      const response = await axios.post(`${API_URL}/api/auth/login`, credentials);
+      const response = await axios.post('/auth/login', credentials);
       if (response.data.token) {
         localStorage.setItem('token', response.data.token);
         setToken(response.data.token);
