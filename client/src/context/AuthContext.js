@@ -13,7 +13,7 @@ export const AuthProvider = ({ children }) => {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
   const api = axios.create({
-    baseURL: 'https://black-keyv2-api.vercel.app/api',
+    baseURL: 'https://black-keyv2-api.vercel.app',
     headers: {
       'Content-Type': 'application/json'
     }
