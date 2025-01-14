@@ -47,7 +47,7 @@ const PaymentInfoManager = ({ onUpdate }) => {
     } catch (error) {
       console.error('Mövcud parametrləri alma xətası:', error);
     }
-  }, [api, formData]);
+  }, [api]);
 
   useEffect(() => {
     fetchCurrentSettings();
