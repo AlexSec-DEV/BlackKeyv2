@@ -61,13 +61,11 @@ const Sidebar = () => {
   const totalInvestments = investments.length;
 
   const getProfileImageUrl = () => {
-    if (!user?.profileImage || user.profileImage === 'default-avatar.png') {
+    if (!user?.profileImage) {
       return '/default-avatar.png';
     }
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    const imageUrl = `${baseUrl}/uploads/profile/${user.profileImage}`;
-    console.log('Sidebar Avatar URL:', imageUrl);
-    return imageUrl;
+    console.log('Sidebar Avatar URL:', user.profileImage);
+    return user.profileImage;
   };
 
   return (

@@ -76,10 +76,8 @@ const Profile = () => {
   // Profil resmi URL'sini oluştur
   const getProfileImageUrl = () => {
     if (!user?.profileImage) return undefined;
-    const baseUrl = process.env.REACT_APP_API_URL || 'http://localhost:5000';
-    const imageUrl = `${baseUrl}/uploads/profile/${user.profileImage}`;
-    console.log('Profile image URL:', imageUrl);
-    return imageUrl;
+    console.log('Profile image URL:', user.profileImage);
+    return user.profileImage;
   };
 
   const handleSubmit = async (e) => {
