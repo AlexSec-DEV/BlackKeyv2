@@ -106,6 +106,47 @@ router.post('/profile/image', auth, upload.single('profileImage'), async (req, r
   }
 });
 
+// Profil bilgilerini güncelle
+router.put('/profile', auth, async (req, res) => {
+  try {
+    const { currentPassword, newPassword, phoneNumber, country, birthDate } = req.body;
+    const user = await User.findById(req.user._id);
+
+    if (!user) {
+      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+    }
+
+    // Şifre değişikliği varsa kontrol et
+    if (newPassword) {
+      // Mevcut şifreyi kontrol et
+      const isMatch = await user.comparePassword(currentPassword);
+      if (!isMatch) {
+        return res.status(400).json({ message: 'Mevcut şifre hatalı' });
+      }
+      user.password = newPassword;
+    }
+
+    // Diğer bilgileri güncelle
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (country) user.country = country;
+    if (birthDate) user.birthDate = birthDate;
+
+    await user.save();
+
+    // Şifreyi hariç tutarak kullanıcı bilgilerini gönder
+    const userResponse = user.toObject();
+    delete userResponse.password;
+
+    res.json({
+      message: 'Profil başarıyla güncellendi',
+      user: userResponse
+    });
+  } catch (error) {
+    console.error('Profil güncelleme hatası:', error);
+    res.status(500).json({ message: 'Profil güncellenirken bir hata oluştu' });
+  }
+});
+
 // Kayıt ol
 router.post('/register', async (req, res) => {
   try {
