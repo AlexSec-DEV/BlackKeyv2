@@ -90,11 +90,29 @@ const Dashboard = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [investments, setInvestments] = useState([]);
+  const [stats, setStats] = useState(null);
   const [calculatedReturns, setCalculatedReturns] = useState({
     daily: 0,
     monthly: 0,
     total: 0
   });
+
+  const loadStats = useCallback(async () => {
+    try {
+      const res = await api.get('/admin/fake-stats');
+      if (res.data) {
+        setStats(res.data);
+      }
+    } catch (err) {
+      console.error('İstatistikler yüklenirken hata:', err);
+    }
+  }, [api]);
+
+  useEffect(() => {
+    loadStats();
+    const interval = setInterval(loadStats, 30000);
+    return () => clearInterval(interval);
+  }, [loadStats]);
 
   const loadInvestments = useCallback(async () => {
     try {
