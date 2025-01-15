@@ -316,9 +316,8 @@ const AdminPanel = () => {
                       <button 
                         className="view-receipt-btn"
                         onClick={() => {
-                          const imageUrl = `${process.env.REACT_APP_API_URL}/api/uploads/receipts/${deposit.receiptUrl}`;
-                          console.log('Opening image:', imageUrl);
-                          setSelectedImage(imageUrl);
+                          console.log('Opening image:', deposit.receiptUrl);
+                          setSelectedImage(deposit.receiptUrl);
                         }}
                       >
                         <FaCreditCard /> Göstər
