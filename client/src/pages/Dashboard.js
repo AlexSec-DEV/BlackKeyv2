@@ -18,6 +18,7 @@ import {
 import Sidebar from '../components/Sidebar';
 import ChestImage from '../components/ChestImage';
 import { useAuth } from '../context/AuthContext';
+import MobileHeader from '../components/MobileHeader';
 
 const packages = [
   {
@@ -162,9 +163,23 @@ const Dashboard = () => {
   const totalMonthlyReturn = totalDailyReturn * 30;
 
   return (
-    <Box sx={{ display: 'flex', bgcolor: '#889799', minHeight: '100vh' }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: { xs: 'column', md: 'row' },
+      bgcolor: '#889799', 
+      minHeight: '100vh' 
+    }}>
+      <MobileHeader />
       <Sidebar totalDailyReturn={totalDailyReturn} totalMonthlyReturn={totalMonthlyReturn} />
-      <Box component="main" sx={{ flexGrow: 1, p: 3, bgcolor: '#889799' }}>
+      <Box 
+        component="main" 
+        sx={{ 
+          flexGrow: 1, 
+          p: { xs: 1, sm: 2, md: 3 },
+          bgcolor: '#889799',
+          width: { xs: '100%', md: 'calc(100% - 240px)' }
+        }}
+      >
         <Container maxWidth={false}>
           <Box sx={{ maxWidth: '1400px', mx: 'auto' }}>
             {investments.length > 0 && (
@@ -172,18 +187,25 @@ const Dashboard = () => {
                 <Box
                   sx={{
                     bgcolor: '#2196f3',
-                    p: 2,
+                    p: { xs: 1.5, md: 2 },
                     borderRadius: 2,
-                    mb: 4,
+                    mb: { xs: 2, md: 4 },
                     width: '100%'
                   }}
                 >
-                  <Typography variant="h5" sx={{ color: '#fff', fontWeight: 'bold' }}>
+                  <Typography 
+                    variant="h5" 
+                    sx={{ 
+                      color: '#fff', 
+                      fontWeight: 'bold',
+                      fontSize: { xs: '1.25rem', md: '1.5rem' }
+                    }}
+                  >
                     Mövcud Kasalarım
                   </Typography>
                 </Box>
 
-                <Grid container spacing={3} sx={{ mb: 6 }}>
+                <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 4, md: 6 } }}>
                   {investments.map((investment) => {
                     const pkg = packages.find(p => p.name === investment.type);
                     const now = new Date();
@@ -291,19 +313,26 @@ const Dashboard = () => {
 
             <Box
               sx={{
-                bgcolor: '#9c27b0',
-                p: 2,
+                bgcolor: '#2196f3',
+                p: { xs: 1.5, md: 2 },
                 borderRadius: 2,
-                mb: 4,
+                mb: { xs: 2, md: 4 },
                 width: '100%'
               }}
             >
-              <Typography variant="h5" sx={{ color: '#fff', fontWeight: 'bold' }}>
-                Kasa Satın Al
+              <Typography 
+                variant="h5" 
+                sx={{ 
+                  color: '#fff', 
+                  fontWeight: 'bold',
+                  fontSize: { xs: '1.25rem', md: '1.5rem' }
+                }}
+              >
+                Yeni Kasa Aç
               </Typography>
             </Box>
 
-            <Grid container spacing={3}>
+            <Grid container spacing={{ xs: 2, md: 3 }}>
               {packages.map((pkg) => (
                 <Grid item xs={12} sm={6} md={4} key={pkg.name}>
                   <Card

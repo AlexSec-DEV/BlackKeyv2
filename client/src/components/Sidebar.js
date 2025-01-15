@@ -69,10 +69,18 @@ const Sidebar = () => {
   };
 
   return (
-    <div className="sidebar">
+    <Box 
+      className="sidebar"
+      sx={{ 
+        display: { xs: 'none', md: 'block' },
+        position: { md: 'sticky' },
+        top: 0,
+        height: '100vh'
+      }}
+    >
       <Paper
         sx={{
-          width: 240,
+          width: { xs: '100%', md: 240 },
           height: '100%',
           borderRadius: 0,
           display: 'flex',
@@ -85,8 +93,8 @@ const Sidebar = () => {
       >
         <Box
           sx={{
-            width: 120,
-            height: 120,
+            width: { xs: 80, md: 120 },
+            height: { xs: 80, md: 120 },
             position: 'relative',
             mb: 2
           }}
@@ -104,34 +112,58 @@ const Sidebar = () => {
           />
         </Box>
 
-        <Typography variant="h6" gutterBottom>
+        <Typography 
+          variant="h6" 
+          gutterBottom 
+          sx={{ 
+            fontSize: { xs: '1rem', md: '1.25rem' }
+          }}
+        >
           Xoş gəlmisiniz, {user?.username}
         </Typography>
 
-        <Box sx={{ width: '100%', p: 2 }}>
+        <Box sx={{ width: '100%', p: { xs: 1, md: 2 } }}>
           <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
             <AccountBalanceWalletIcon sx={{ mr: 1, color: '#4caf50' }} />
-            <Typography variant="subtitle1">
+            <Typography 
+              variant="subtitle1" 
+              sx={{ 
+                fontSize: { xs: '0.875rem', md: '1rem' }
+              }}
+            >
               Balans: {Number(user?.balance).toFixed(2)} AZN
             </Typography>
           </Box>
 
           <Divider sx={{ my: 2 }} />
 
-          <Box sx={{ mt: 1, mb: 2 }}>
+          <Box sx={{ mt: 2 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', mb: 1 }}>
               <StarIcon sx={{ mr: 1, color: '#ffd700' }} />
-              <Typography variant="body2" color="textSecondary">
+              <Typography 
+                variant="body2" 
+                color="textSecondary" 
+                sx={{ 
+                  fontSize: { xs: '0.75rem', md: '0.875rem' }
+                }}
+              >
                 XP: {user?.xp || 0}/{user?.nextLevelXp || 100}
               </Typography>
-              <Typography variant="body2" color="textSecondary" sx={{ ml: 'auto' }}>
+              <Typography 
+                variant="body2" 
+                color="textSecondary" 
+                sx={{ 
+                  ml: 'auto', 
+                  fontSize: { xs: '0.75rem', md: '0.875rem' }
+                }}
+              >
                 Səviyyə: {user?.level || 1}
               </Typography>
             </Box>
             <LinearProgress
               variant="determinate"
               value={((user?.xp || 0) / (user?.nextLevelXp || 100)) * 100}
-              sx={{ height: 8, borderRadius: 1 }}
+              sx={{ height: { xs: 6, md: 8 }, borderRadius: 1 }}
             />
           </Box>
 
@@ -191,7 +223,7 @@ const Sidebar = () => {
           </Box>
         </Box>
       </Paper>
-    </div>
+    </Box>
   );
 };
 
