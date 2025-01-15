@@ -335,14 +335,8 @@ const AdminPanel = () => {
                       <button 
                         className="view-receipt-btn"
                         onClick={() => {
-                          const cloudinaryUrl = deposit.receiptUrl.split('https://res.cloudinary.com/')[1];
-                          if (cloudinaryUrl) {
-                            const finalUrl = 'https://res.cloudinary.com/' + cloudinaryUrl;
-                            console.log('Opening image:', finalUrl);
-                            setSelectedImage(finalUrl);
-                          } else {
-                            console.log('Invalid URL format:', deposit.receiptUrl);
-                          }
+                          console.log('Opening image:', deposit.receiptUrl);
+                          setSelectedImage(deposit.receiptUrl);
                         }}
                       >
                         <FaCreditCard /> Göstər
