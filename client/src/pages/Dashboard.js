@@ -19,6 +19,7 @@ import Sidebar from '../components/Sidebar';
 import ChestImage from '../components/ChestImage';
 import { useAuth } from '../context/AuthContext';
 import MobileHeader from '../components/MobileHeader';
+import axios from 'axios';
 
 const packages = [
   {
@@ -114,14 +115,22 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [loadStats]);
 
-  const loadInvestments = useCallback(async () => {
+  const loadInvestments = async () => {
     try {
-      const res = await api.get('/investments/my');
-      setInvestments(res.data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Sərmayələr yüklənərkən xəta baş verdi');
+      const response = await axios.get(`${API_URL}/investments/my`);
+      setInvestments(response.data.investments || []);
+      // Kullanıcı bakiyesini güncelle
+      if (user) {
+        setUser(prevUser => ({
+          ...prevUser,
+          balance: response.data.balance
+        }));
+      }
+    } catch (error) {
+      console.error('Yatırımları yükleme hatası:', error);
+      setError('Yatırımlar yüklenirken bir hata oluştu');
     }
-  }, [api]);
+  };
 
   useEffect(() => {
     loadInvestments();
@@ -177,7 +186,7 @@ const Dashboard = () => {
   };
 
   // Toplam günlük kazanç hesaplama ve gösterme
-  const totalDailyReturn = investments.reduce((total, inv) => total + inv.dailyReturn, 0);
+  const totalDailyReturn = Array.isArray(investments) ? investments.reduce((total, inv) => total + inv.dailyReturn, 0) : 0;
   const totalMonthlyReturn = totalDailyReturn * 30;
 
   return (
