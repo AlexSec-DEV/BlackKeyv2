@@ -11,13 +11,28 @@ import {
   Paper, 
   Button, 
   Chip, 
-  Typography 
+  Typography,
+  Modal,
+  Box
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
 import CancelIcon from '@mui/icons-material/Cancel';
 import PaymentInfoManager from '../components/PaymentInfoManager';
 import './AdminPanel.css';
+
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  maxWidth: '90vw',
+  maxHeight: '90vh',
+  overflow: 'auto'
+};
 
 const AdminPanel = () => {
   const { api } = useAuth();
@@ -187,6 +202,10 @@ const AdminPanel = () => {
     }
 
     return 'Bilinmeyen ödeme yöntemi';
+  };
+
+  const handleCloseImage = () => {
+    setSelectedImage(null);
   };
 
   return (
@@ -462,14 +481,23 @@ const AdminPanel = () => {
         )}
       </div>
 
-      {selectedImage && (
-        <div className="modal" onClick={() => setSelectedImage(null)}>
-          <div className="modal-content" onClick={e => e.stopPropagation()}>
-            <span className="close" onClick={() => setSelectedImage(null)}>&times;</span>
-            <img src={selectedImage} alt="Qəbz" />
-          </div>
-        </div>
-      )}
+      {/* Image Modal */}
+      <Modal
+        open={!!selectedImage}
+        onClose={handleCloseImage}
+        aria-labelledby="receipt-modal"
+        aria-describedby="receipt-image"
+      >
+        <Box sx={modalStyle}>
+          {selectedImage && (
+            <img 
+              src={selectedImage} 
+              alt="Receipt" 
+              style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+            />
+          )}
+        </Box>
+      </Modal>
     </div>
   );
 };
