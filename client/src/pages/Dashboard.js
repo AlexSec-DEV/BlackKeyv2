@@ -185,7 +185,8 @@ const Dashboard = () => {
       display: 'flex', 
       flexDirection: { xs: 'column', md: 'row' },
       bgcolor: '#889799', 
-      minHeight: '100vh' 
+      minHeight: '100vh',
+      pt: { xs: '56px', sm: '64px' }
     }}>
       <MobileHeader 
         totalDailyReturn={totalDailyReturn}
@@ -204,7 +205,7 @@ const Dashboard = () => {
           p: { xs: 1, sm: 2, md: 3 },
           bgcolor: '#889799',
           width: { xs: '100%', md: 'calc(100% - 240px)' },
-          mt: { xs: 0, md: 0 } // Remove top margin on mobile
+          mt: { xs: 0, md: 0 }
         }}
       >
         <Container maxWidth={false}>
