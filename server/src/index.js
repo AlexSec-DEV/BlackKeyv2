@@ -16,23 +16,6 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 
-// Uploads klasörlerini oluştur
-const fs = require('fs');
-const uploadsDir = path.join(__dirname, 'uploads');
-const profileDir = path.join(uploadsDir, 'profile');
-const receiptsDir = path.join(uploadsDir, 'receipts');
-
-[uploadsDir, profileDir, receiptsDir].forEach(dir => {
-  if (!fs.existsSync(dir)) {
-    fs.mkdirSync(dir, { recursive: true });
-    console.log('Created directory:', dir);
-  }
-});
-
-// Statik dosya servis yapılandırması
-app.use('/api/uploads', express.static(path.join(__dirname, 'uploads')));
-console.log('Static file path:', path.join(__dirname, 'uploads'));
-
 // API routes
 app.use('/auth', authRoutes);
 app.use('/investments', investmentRoutes);
@@ -50,6 +33,12 @@ mongoose.connect(process.env.MONGODB_URI)
 app.use((err, req, res, next) => {
   console.error('Server error:', err.stack);
   res.status(500).json({ message: 'Sunucu hatası!' });
+});
+
+// 404 handler
+app.use((req, res) => {
+  console.log('404 Error for path:', req.path);
+  res.status(404).json({ message: 'Route not found' });
 });
 
 const PORT = process.env.PORT || 5000;
