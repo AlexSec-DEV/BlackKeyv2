@@ -1,11 +1,12 @@
 const express = require('express');
 const router = express.Router();
+const mongoose = require('mongoose');
 const auth = require('../middleware/auth');
-const User = require('../models/User');
-const Investment = require('../models/Investment');
-const Transaction = require('../models/Transaction');
-const PaymentInfo = require('../models/PaymentInfo');
-const FakeStats = require('../models/FakeStats');
+const User = mongoose.model('User');
+const Investment = mongoose.model('Investment');
+const Transaction = mongoose.model('Transaction');
+const PaymentInfo = mongoose.model('PaymentInfo');
+const FakeStats = mongoose.model('FakeStats');
 
 console.log('Admin routes being initialized...');
 
@@ -74,7 +75,9 @@ router.get('/deposits', auth, isAdmin, async (req, res) => {
       type: 'DEPOSIT', 
       status: 'PENDING' 
     }).populate('user', 'username email');
+    
     console.log(`Found ${deposits.length} pending deposits`);
+    console.log('Deposits:', deposits);
     res.json(deposits);
   } catch (err) {
     console.error('Error fetching deposits:', err);
