@@ -169,15 +169,24 @@ const Dashboard = () => {
       bgcolor: '#889799', 
       minHeight: '100vh' 
     }}>
-      <MobileHeader />
-      <Sidebar totalDailyReturn={totalDailyReturn} totalMonthlyReturn={totalMonthlyReturn} />
+      <MobileHeader 
+        totalDailyReturn={totalDailyReturn}
+        totalMonthlyReturn={totalMonthlyReturn}
+        totalInvestments={investments.length}
+        stats={stats}
+      />
+      <Sidebar 
+        totalDailyReturn={totalDailyReturn} 
+        totalMonthlyReturn={totalMonthlyReturn} 
+      />
       <Box 
         component="main" 
         sx={{ 
           flexGrow: 1, 
           p: { xs: 1, sm: 2, md: 3 },
           bgcolor: '#889799',
-          width: { xs: '100%', md: 'calc(100% - 240px)' }
+          width: { xs: '100%', md: 'calc(100% - 240px)' },
+          mt: { xs: 0, md: 0 } // Remove top margin on mobile
         }}
       >
         <Container maxWidth={false}>
