@@ -4,8 +4,7 @@ const User = require('../models/User');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
-const path = require('path');
-const fs = require('fs');
+const cloudinary = require('../config/cloudinary');
 
 // Auth middleware
 const auth = async (req, res, next) => {
@@ -25,37 +24,18 @@ const auth = async (req, res, next) => {
   }
 };
 
-// Dosya yükleme ayarları
-const storage = multer.diskStorage({
-  destination: function(req, file, cb) {
-    const uploadPath = path.join(__dirname, '../../uploads/profile');
-    if (!fs.existsSync(uploadPath)) {
-      fs.mkdirSync(uploadPath, { recursive: true });
-    }
-    console.log('Upload path:', uploadPath);
-    cb(null, uploadPath);
-  },
-  filename: function(req, file, cb) {
-    const uniqueSuffix = Date.now() + '-' + Math.round(Math.random() * 1E9);
-    const filename = 'profile-' + uniqueSuffix + path.extname(file.originalname);
-    console.log('Generated filename:', filename);
-    cb(null, filename);
-  }
-});
-
-const fileFilter = (req, file, cb) => {
-  if (file.mimetype.startsWith('image/')) {
-    cb(null, true);
-  } else {
-    cb(new Error('Sadece resim dosyaları yüklenebilir!'), false);
-  }
-};
-
+// Multer ayarları - geçici depolama için memory storage kullan
+const storage = multer.memoryStorage();
 const upload = multer({
   storage: storage,
-  fileFilter: fileFilter,
   limits: {
-    fileSize: 5 * 1024 * 1024 // 5MB
+    fileSize: 5 * 1024 * 1024 // 5MB limit
+  },
+  fileFilter: function(req, file, cb) {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Sadece resim dosyaları yüklenebilir!'));
+    }
+    cb(null, true);
   }
 });
 
@@ -88,17 +68,31 @@ router.post('/profile/image', auth, upload.single('profileImage'), async (req, r
       return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
     }
 
-    // Eski profil resmini sil (varsayılan resim değilse)
-    if (user.profileImage && user.profileImage !== 'default-avatar.png') {
-      const oldImagePath = path.join(__dirname, '../../uploads/profile', user.profileImage);
-      console.log('Eski resim yolu:', oldImagePath);
-      if (fs.existsSync(oldImagePath)) {
-        fs.unlinkSync(oldImagePath);
-        console.log('Eski resim silindi');
+    // Dosyayı base64'e çevir
+    const base64File = req.file.buffer.toString('base64');
+    const dataURI = `data:${req.file.mimetype};base64,${base64File}`;
+
+    // Cloudinary'ye yükle
+    console.log('Cloudinary\'ye yükleniyor...');
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'profiles',
+      resource_type: 'image'
+    });
+    console.log('Cloudinary yükleme sonucu:', result);
+
+    // Eski profil resmini Cloudinary'den sil (varsayılan resim değilse)
+    if (user.profileImage && user.profileImage.includes('cloudinary')) {
+      try {
+        const publicId = user.profileImage.split('/').pop().split('.')[0];
+        await cloudinary.uploader.destroy(publicId);
+        console.log('Eski profil resmi Cloudinary\'den silindi');
+      } catch (error) {
+        console.error('Eski resim silinirken hata:', error);
       }
     }
 
-    user.profileImage = req.file.filename;
+    // Kullanıcı bilgilerini güncelle
+    user.profileImage = result.secure_url;
     await user.save();
     console.log('Kullanıcı profil resmi güncellendi:', user.profileImage);
 
@@ -108,14 +102,6 @@ router.post('/profile/image', auth, upload.single('profileImage'), async (req, r
     });
   } catch (error) {
     console.error('Profil resmi yükleme hatası:', error);
-    if (req.file) {
-      try {
-        fs.unlinkSync(req.file.path);
-        console.log('Hata sonrası yüklenen dosya silindi');
-      } catch (e) {
-        console.error('Yüklenen dosya silinirken hata:', e);
-      }
-    }
     res.status(500).json({ message: 'Profil resmi yüklenirken bir hata oluştu' });
   }
 });
@@ -145,7 +131,7 @@ router.post('/register', async (req, res) => {
       level: 1,
       xp: 0,
       nextLevelXp: 100,
-      profileImage: 'default-avatar.png'
+      profileImage: 'https://res.cloudinary.com/dgrbjuqxl/image/upload/v1705347750/default-avatar.png'
     });
 
     await user.save();
