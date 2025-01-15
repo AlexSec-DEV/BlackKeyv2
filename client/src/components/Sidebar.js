@@ -27,7 +27,7 @@ const Sidebar = () => {
   const loadInvestments = useCallback(async () => {
     try {
       const res = await api.get('/investments/my');
-      setInvestments(res.data);
+      setInvestments(res.data.investments || []);
     } catch (err) {
       console.error('Yatırımlar yüklenirken hata:', err);
     }
@@ -56,9 +56,9 @@ const Sidebar = () => {
     setAvatarKey(prev => prev + 1);
   }, [user?.profileImage]);
 
-  const totalDailyReturn = investments.reduce((total, inv) => total + inv.dailyReturn, 0);
+  const totalDailyReturn = Array.isArray(investments) ? investments.reduce((total, inv) => total + inv.dailyReturn, 0) : 0;
   const totalMonthlyReturn = totalDailyReturn * 30;
-  const totalInvestments = investments.length;
+  const totalInvestments = Array.isArray(investments) ? investments.length : 0;
 
   const getProfileImageUrl = () => {
     if (!user?.profileImage) {

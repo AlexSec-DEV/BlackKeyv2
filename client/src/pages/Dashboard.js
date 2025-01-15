@@ -112,20 +112,16 @@ const Dashboard = () => {
 
   const loadInvestments = useCallback(async () => {
     try {
-      const response = await axios.get(`${API_URL}/investments/my`);
-      setInvestments(response.data.investments || []);
-      // Kullanıcı bakiyesini güncelle
-      if (user) {
-        setUser(prevUser => ({
-          ...prevUser,
-          balance: response.data.balance
-        }));
-      }
-    } catch (error) {
-      console.error('Yatırımları yükleme hatası:', error);
-      setError('Yatırımlar yüklenirken bir hata oluştu');
+      const res = await api.get('/investments/my');
+      setInvestments(res.data.investments || []);
+      setUser(prevUser => ({
+        ...prevUser,
+        balance: res.data.balance
+      }));
+    } catch (err) {
+      console.error('Yatırımlar yüklenirken hata:', err);
     }
-  }, [user, setUser]);
+  }, [api, setUser]);
 
   useEffect(() => {
     loadStats();
