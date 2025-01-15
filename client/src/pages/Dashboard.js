@@ -113,11 +113,15 @@ const Dashboard = () => {
   const loadInvestments = useCallback(async () => {
     try {
       const res = await api.get('/investments/my');
-      setInvestments(res.data.investments || []);
-      setUser(prevUser => ({
-        ...prevUser,
-        balance: res.data.balance
-      }));
+      if (res.data && typeof res.data === 'object') {
+        setInvestments(res.data.investments || []);
+        if (typeof setUser === 'function') {
+          setUser(prevUser => ({
+            ...prevUser,
+            balance: res.data.balance
+          }));
+        }
+      }
     } catch (err) {
       console.error('Yatırımlar yüklenirken hata:', err);
     }
