@@ -335,8 +335,12 @@ const AdminPanel = () => {
                       <button 
                         className="view-receipt-btn"
                         onClick={() => {
-                          console.log('Opening image:', deposit.receiptUrl);
-                          setSelectedImage(deposit.receiptUrl);
+                          let finalUrl = deposit.receiptUrl;
+                          if (finalUrl.includes('/api/uploads/receipts/')) {
+                              finalUrl = finalUrl.split('/api/uploads/receipts/')[1];
+                          }
+                          console.log('Opening image:', finalUrl);
+                          setSelectedImage(finalUrl);
                         }}
                       >
                         <FaCreditCard /> Göstər
