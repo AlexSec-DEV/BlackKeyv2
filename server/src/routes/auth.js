@@ -209,26 +209,43 @@ router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
 
+    // Kullanıcıyı bul
     const user = await User.findOne({ email });
     if (!user) {
-      return res.status(401).json({ message: 'Email veya şifre hatalı' });
+      console.log('Giriş başarısız: Kullanıcı bulunamadı -', email);
+      return res.status(401).json({ 
+        message: 'Email veya şifre hatalı',
+        error: 'INVALID_CREDENTIALS'
+      });
     }
 
+    // Şifreyi kontrol et
     const isMatch = await user.comparePassword(password);
     if (!isMatch) {
-      return res.status(401).json({ message: 'Email veya şifre hatalı' });
+      console.log('Giriş başarısız: Yanlış şifre -', email);
+      return res.status(401).json({ 
+        message: 'Email veya şifre hatalı',
+        error: 'INVALID_CREDENTIALS'
+      });
     }
 
+    // Hesap engellenmiş mi kontrol et
     if (user.isBlocked) {
-      return res.status(403).json({ message: 'Hesabınız engellenmiş durumda' });
+      console.log('Giriş başarısız: Hesap engellenmiş -', email);
+      return res.status(403).json({ 
+        message: 'Hesabınız yönetici tarafından engellenmiştir. Lütfen destek ile iletişime geçin.',
+        error: 'ACCOUNT_BLOCKED'
+      });
     }
 
+    // Token oluştur
     const token = jwt.sign(
       { id: user._id },
       process.env.JWT_SECRET || 'blackkey2024secret',
       { expiresIn: '24h' }
     );
 
+    console.log('Giriş başarılı:', email);
     res.json({
       token,
       user: {
@@ -241,12 +258,18 @@ router.post('/login', async (req, res) => {
         level: user.level,
         xp: user.xp,
         nextLevelXp: user.nextLevelXp,
-        profileImage: user.profileImage
+        profileImage: user.profileImage,
+        phoneNumber: user.phoneNumber,
+        country: user.country,
+        birthDate: user.birthDate
       }
     });
   } catch (error) {
     console.error('Giriş hatası:', error);
-    res.status(500).json({ message: error.message });
+    res.status(500).json({ 
+      message: 'Giriş yapılırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.',
+      error: 'SERVER_ERROR'
+    });
   }
 });
 

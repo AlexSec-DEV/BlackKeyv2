@@ -25,9 +25,11 @@ const Login = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    const success = await login(formData);
-    if (success) {
+    try {
+      await login(formData);
       navigate('/dashboard');
+    } catch (error) {
+      console.error('Login error:', error);
     }
   };
 
@@ -53,6 +55,7 @@ const Login = () => {
               onChange={handleChange}
               margin="normal"
               required
+              disabled={loading}
             />
             <TextField
               fullWidth
@@ -63,13 +66,14 @@ const Login = () => {
               onChange={handleChange}
               margin="normal"
               required
+              disabled={loading}
             />
             <Button
               type="submit"
               fullWidth
               variant="contained"
               size="large"
-              sx={{ mt: 3 }}
+              sx={{ mt: 3, mb: 2 }}
               disabled={loading}
             >
               {loading ? 'Daxil olunur...' : 'Daxil Ol'}

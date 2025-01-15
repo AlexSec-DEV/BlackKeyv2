@@ -56,10 +56,29 @@ export const AuthProvider = ({ children }) => {
         setToken(response.data.token);
         setUser(response.data.user);
         setIsAuthenticated(true);
+        setError(null);
       }
       return response.data;
     } catch (error) {
       console.error('Giriş hatası:', error);
+      let errorMessage = 'Giriş yapılırken bir hata oluştu';
+      
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        switch (data.error) {
+          case 'INVALID_CREDENTIALS':
+            errorMessage = 'Email veya şifre hatalı';
+            break;
+          case 'ACCOUNT_BLOCKED':
+            errorMessage = 'Hesabınız yönetici tarafından engellenmiştir. Lütfen destek ile iletişime geçin.';
+            break;
+          default:
+            errorMessage = data.message || errorMessage;
+        }
+      }
+      
+      setError(errorMessage);
       throw error;
     }
   };
