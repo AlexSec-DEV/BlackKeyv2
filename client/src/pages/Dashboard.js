@@ -20,6 +20,7 @@ import ChestImage from '../components/ChestImage';
 import { useAuth } from '../context/AuthContext';
 import MobileHeader from '../components/MobileHeader';
 import axios from 'axios';
+import { API_URL } from '../config/api';
 
 const packages = [
   {
@@ -85,7 +86,7 @@ const packages = [
 ];
 
 const Dashboard = () => {
-  const { api, loadUser } = useAuth();
+  const { api, loadUser, user, setUser } = useAuth();
   const [selectedPackage, setSelectedPackage] = useState(null);
   const [investmentAmount, setInvestmentAmount] = useState('');
   const [error, setError] = useState(null);
@@ -109,13 +110,7 @@ const Dashboard = () => {
     }
   }, [api]);
 
-  useEffect(() => {
-    loadStats();
-    const interval = setInterval(loadStats, 30000);
-    return () => clearInterval(interval);
-  }, [loadStats]);
-
-  const loadInvestments = async () => {
+  const loadInvestments = useCallback(async () => {
     try {
       const response = await axios.get(`${API_URL}/investments/my`);
       setInvestments(response.data.investments || []);
@@ -130,7 +125,13 @@ const Dashboard = () => {
       console.error('Yatırımları yükleme hatası:', error);
       setError('Yatırımlar yüklenirken bir hata oluştu');
     }
-  };
+  }, [user, setUser]);
+
+  useEffect(() => {
+    loadStats();
+    const interval = setInterval(loadStats, 30000);
+    return () => clearInterval(interval);
+  }, [loadStats]);
 
   useEffect(() => {
     loadInvestments();
