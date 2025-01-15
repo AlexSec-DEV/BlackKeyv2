@@ -3,7 +3,7 @@ const mongoose = require('mongoose');
 const transactionSchema = new mongoose.Schema({
   user: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'users',
+    ref: 'User',
     required: true
   },
   type: {
@@ -46,7 +46,7 @@ const transactionSchema = new mongoose.Schema({
   processedAt: Date,
   processedBy: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: 'users'
+    ref: 'User'
   },
   note: String
 });
