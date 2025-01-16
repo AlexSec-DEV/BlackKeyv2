@@ -318,7 +318,6 @@ const AdminPanel = () => {
           <th>Son Giriş Tarixi</th>
           <th>Level</th>
           <th>Balans</th>
-          <th>Status</th>
           <th>Əməliyyatlar</th>
         </tr>
       </thead>
@@ -330,7 +329,6 @@ const AdminPanel = () => {
             <td>{formatDate(user.lastLoginDate)}</td>
             <td>{user.level}</td>
             <td>{user.balance}</td>
-            <td>{getStatusText(user.isBlocked)}</td>
             <td>
               {!user.isAdmin && (
                 <button
