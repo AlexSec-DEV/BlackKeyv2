@@ -147,7 +147,7 @@ const AdminPanel = () => {
     try {
       if (type === 'USER') {
         const endpoint = action === 'BLOCK' ? 'block' : 'unblock';
-        await api.post(`/admin/users/${id}/${endpoint}`);
+        await api.post(`/admin/user/${id}/${endpoint}`);
         await loadUsers();
         alert('İşlem başarıyla tamamlandı');
       } else if (type === 'DEPOSIT') {
