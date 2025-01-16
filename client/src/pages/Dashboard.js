@@ -21,6 +21,7 @@ import { useAuth } from '../context/AuthContext';
 import MobileHeader from '../components/MobileHeader';
 import axios from 'axios';
 import { API_URL } from '../config/api';
+import StarIcon from '@mui/icons-material/Star';
 
 const Dashboard = () => {
   const { api, loadUser, user, setUser } = useAuth();
@@ -189,6 +190,9 @@ const Dashboard = () => {
   const totalDailyReturn = Array.isArray(investments) ? investments.reduce((total, inv) => total + inv.dailyReturn, 0) : 0;
   const totalMonthlyReturn = totalDailyReturn * 30;
 
+  // Progress bar için XP yüzdesini hesapla
+  const xpProgress = (user?.xp / 100) * 100;
+
   return (
     <Box sx={{ 
       display: 'flex', 
@@ -205,7 +209,15 @@ const Dashboard = () => {
       <Sidebar 
         totalDailyReturn={totalDailyReturn} 
         totalMonthlyReturn={totalMonthlyReturn} 
-      />
+        xpProgress={xpProgress}
+      >
+        <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+          <StarIcon sx={{ color: '#ffd700', mr: 1 }} />
+          <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+            XP: {user?.xp}/100 Səviyyə: {user?.level}
+          </Typography>
+        </Box>
+      </Sidebar>
       <Box 
         component="main" 
         sx={{ 
