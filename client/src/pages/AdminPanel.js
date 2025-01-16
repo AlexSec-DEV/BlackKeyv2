@@ -103,8 +103,8 @@ const AdminPanel = () => {
         setRealStats({
           totalUsers: response.data.totalUsers || 0,
           totalInvestments: response.data.totalInvestments || 0,
-          activeInvestments: response.data.activeInvestments || 0,
-          totalAmount: response.data.totalInvestmentAmount || 0
+          activeInvestments: response.data.totalInvestmentAmount || 0,
+          totalAmount: response.data.totalBalance || 0
         });
       }
     } catch (err) {
