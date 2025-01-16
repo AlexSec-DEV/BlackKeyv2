@@ -22,69 +22,6 @@ import MobileHeader from '../components/MobileHeader';
 import axios from 'axios';
 import { API_URL } from '../config/api';
 
-const packages = [
-  {
-    name: 'SILVER',
-    displayName: 'Silver Kasa',
-    dailyReturn: 5,
-    minAmount: 5,
-    maxAmount: 100,
-    percentage: '7%',
-    color: '#9b59b6',
-    buttonColor: 'rgba(155, 89, 182, 0.5)'
-  },
-  {
-    name: 'GOLD',
-    displayName: 'Gold Kasa',
-    dailyReturn: 15,
-    minAmount: 100,
-    maxAmount: 500,
-    percentage: '10%',
-    color: '#f1c40f',
-    buttonColor: 'rgba(241, 196, 15, 0.5)'
-  },
-  {
-    name: 'PLATINUM',
-    displayName: 'Platinum Kasa',
-    dailyReturn: 40,
-    minAmount: 500,
-    maxAmount: 1000,
-    percentage: '16%',
-    color: '#bdc3c7',
-    buttonColor: 'rgba(189, 195, 199, 0.5)'
-  },
-  {
-    name: 'DIAMOND',
-    displayName: 'Diamond Kasa',
-    dailyReturn: 80,
-    minAmount: 1000,
-    maxAmount: 5000,
-    percentage: '25%',
-    color: '#00bcd4',
-    buttonColor: 'rgba(0, 188, 212, 0.5)'
-  },
-  {
-    name: 'MASTER',
-    displayName: 'Master Kasa',
-    dailyReturn: 150,
-    minAmount: 5000,
-    maxAmount: 10000,
-    percentage: '34%',
-    color: '#9c27b0',
-    buttonColor: 'rgba(156, 39, 176, 0.5)'
-  },
-  {
-    name: 'ELITE',
-    displayName: 'Elite Kasa',
-    dailyReturn: 1000,
-    minAmount: 10000,
-    maxAmount: 20000,
-    percentage: '40%',
-    color: '#ff6b6b',
-    buttonColor: 'rgba(255, 107, 107, 0.5)'
-  }
-];
-
 const Dashboard = () => {
   const { api, loadUser, user, setUser } = useAuth();
   const [selectedPackage, setSelectedPackage] = useState(null);
@@ -148,7 +85,19 @@ const Dashboard = () => {
       try {
         const response = await api.get('/admin/package-settings');
         if (response.data && Array.isArray(response.data)) {
-          setPackageSettings(response.data);
+          // Kasa ayarlarını UI için düzenle
+          const formattedSettings = response.data.map(setting => ({
+            name: setting.type,
+            displayName: `${setting.type.charAt(0)}${setting.type.slice(1).toLowerCase()} Kasa`,
+            dailyReturn: (setting.interestRate / 100 * setting.minAmount) / 30,
+            minAmount: setting.minAmount,
+            maxAmount: setting.maxAmount,
+            percentage: `${setting.interestRate}%`,
+            color: getPackageColor(setting.type),
+            buttonColor: getPackageButtonColor(setting.type),
+            interestRate: setting.interestRate
+          }));
+          setPackageSettings(formattedSettings);
         }
       } catch (error) {
         console.error('Kasa ayarları yüklenirken hata:', error);
@@ -157,34 +106,57 @@ const Dashboard = () => {
     loadPackageSettings();
   }, [api]);
 
+  // Renk helper fonksiyonları
+  const getPackageColor = (type) => {
+    const colors = {
+      'SILVER': '#9b59b6',
+      'GOLD': '#f1c40f',
+      'PLATINUM': '#bdc3c7',
+      'DIAMOND': '#00bcd4',
+      'MASTER': '#9c27b0',
+      'ELITE': '#ff6b6b'
+    };
+    return colors[type] || '#1e1e1e';
+  };
+
+  const getPackageButtonColor = (type) => {
+    const colors = {
+      'SILVER': 'rgba(155, 89, 182, 0.5)',
+      'GOLD': 'rgba(241, 196, 15, 0.5)',
+      'PLATINUM': 'rgba(189, 195, 199, 0.5)',
+      'DIAMOND': 'rgba(0, 188, 212, 0.5)',
+      'MASTER': 'rgba(156, 39, 176, 0.5)',
+      'ELITE': 'rgba(255, 107, 107, 0.5)'
+    };
+    return colors[type] || 'rgba(30, 30, 30, 0.5)';
+  };
+
   // Yatırım miktarı değiştiğinde kazanç hesaplama
   useEffect(() => {
     if (selectedPackage && investmentAmount) {
       const amount = parseFloat(investmentAmount);
       if (!isNaN(amount)) {
-        // Seçili kasanın ayarlarını bul
-        const settings = packageSettings.find(s => s.type === selectedPackage.name);
-        if (settings) {
-          // Günlük kazanç = (Yatırım × Faiz Oranı) ÷ 30
-          const dailyReturn = (amount * settings.interestRate / 100) / 30;
-          
-          // Aylık kazanç = Günlük kazanç × 30
-          const monthlyReturn = dailyReturn * 30;
+        const interestRate = selectedPackage.interestRate;
+        
+        // Günlük kazanç = (Yatırım × Faiz Oranı) ÷ 30
+        const dailyReturn = (amount * interestRate / 100) / 30;
+        
+        // Aylık kazanç = Günlük kazanç × 30
+        const monthlyReturn = dailyReturn * 30;
 
-          // Toplam kazanç = Aylık kazanç + Yatırım sermayesi
-          const totalReturn = monthlyReturn + amount;
+        // Toplam kazanç = Aylık kazanç + Yatırım sermayesi
+        const totalReturn = monthlyReturn + amount;
 
-          setCalculatedReturns({
-            daily: dailyReturn.toFixed(2),
-            monthly: monthlyReturn.toFixed(2),
-            total: totalReturn.toFixed(2)
-          });
-        }
+        setCalculatedReturns({
+          daily: dailyReturn.toFixed(2),
+          monthly: monthlyReturn.toFixed(2),
+          total: totalReturn.toFixed(2)
+        });
       }
     } else {
       setCalculatedReturns({ daily: 0, monthly: 0, total: 0 });
     }
-  }, [selectedPackage, investmentAmount, packageSettings]);
+  }, [selectedPackage, investmentAmount]);
 
   const handleInvestmentSubmit = async () => {
     try {
@@ -263,7 +235,7 @@ const Dashboard = () => {
 
                 <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 4, md: 6 } }}>
                   {investments.map((investment) => {
-                    const pkg = packages.find(p => p.name === investment.type);
+                    const pkg = packageSettings.find(p => p.name === investment.type);
                     const now = new Date();
                     const startDate = new Date(investment.startDate);
                     const endDate = new Date(investment.endDate);
@@ -389,7 +361,7 @@ const Dashboard = () => {
             </Box>
 
             <Grid container spacing={{ xs: 2, md: 3 }}>
-              {packages.map((pkg) => (
+              {packageSettings.map((pkg) => (
                 <Grid item xs={12} sm={6} md={4} key={pkg.name}>
                   <Card
                     sx={{

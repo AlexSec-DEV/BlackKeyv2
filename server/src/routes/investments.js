@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const Investment = require('../models/Investment');
 const User = require('../models/User');
+const PackageSettings = require('../models/PackageSettings');
 const auth = require('../middleware/auth');
 
 // Süresi biten yatırımları kontrol et ve tamamla
@@ -86,71 +87,15 @@ router.post('/', auth, async (req, res) => {
       return res.status(400).json({ message: 'Yetersiz bakiye' });
     }
 
-    const packages = {
-      SILVER: {
-        name: 'SILVER',
-        dailyReturn: 5,
-        minAmount: 5,
-        maxAmount: 100,
-        percentage: 7,
-        lockPeriod: 30,
-        xpPerInvestment: 18
-      },
-      GOLD: {
-        name: 'GOLD',
-        dailyReturn: 15,
-        minAmount: 50,
-        maxAmount: 500,
-        percentage: 10,
-        lockPeriod: 30,
-        xpPerInvestment: 18
-      },
-      PLATINUM: {
-        name: 'PLATINUM',
-        dailyReturn: 40,
-        minAmount: 100,
-        maxAmount: 1000,
-        percentage: 16,
-        lockPeriod: 30,
-        xpPerInvestment: 18
-      },
-      DIAMOND: {
-        name: 'DIAMOND',
-        dailyReturn: 80,
-        minAmount: 200,
-        maxAmount: 2000,
-        percentage: 25,
-        lockPeriod: 30,
-        xpPerInvestment: 18
-      },
-      MASTER: {
-        name: 'MASTER',
-        dailyReturn: 150,
-        minAmount: 500,
-        maxAmount: 5000,
-        percentage: 34,
-        lockPeriod: 30,
-        xpPerInvestment: 18
-      },
-      LEGENDARY: {
-        name: 'LEGENDARY',
-        dailyReturn: 1000,
-        minAmount: 1000,
-        maxAmount: 10000,
-        percentage: 40,
-        lockPeriod: 30,
-        xpPerInvestment: 18
-      }
-    };
-
-    const selectedPackage = packages[type];
-    if (!selectedPackage) {
+    // Kasa ayarlarını veritabanından al
+    const packageSetting = await PackageSettings.findOne({ type });
+    if (!packageSetting) {
       return res.status(400).json({ message: 'Geçersiz paket' });
     }
 
-    if (amount < selectedPackage.minAmount || amount > selectedPackage.maxAmount) {
+    if (amount < packageSetting.minAmount || amount > packageSetting.maxAmount) {
       return res.status(400).json({
-        message: `Yatırım tutarı ${selectedPackage.minAmount} AZN ile ${selectedPackage.maxAmount} AZN arasında olmalıdır`
+        message: `Yatırım tutarı ${packageSetting.minAmount} AZN ile ${packageSetting.maxAmount} AZN arasında olmalıdır`
       });
     }
 
@@ -158,14 +103,14 @@ router.post('/', auth, async (req, res) => {
       user: user._id,
       type,
       amount,
-      dailyReturn: (amount * selectedPackage.percentage) / 100 / 30,
+      dailyReturn: (amount * packageSetting.interestRate) / 100 / 30,
       startDate: new Date(),
-      endDate: new Date(Date.now() + selectedPackage.lockPeriod * 24 * 60 * 60 * 1000),
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 günlük sabit süre
       status: 'active'
     });
 
     user.balance -= amount;
-    user.xp += selectedPackage.xpPerInvestment;
+    user.xp += 18; // Sabit XP değeri
 
     // Level atlama kontrolü
     if (user.xp >= user.nextLevelXp) {
