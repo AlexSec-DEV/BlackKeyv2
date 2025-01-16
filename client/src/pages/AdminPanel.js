@@ -146,17 +146,18 @@ const AdminPanel = () => {
   const handleAction = async (type, id, action) => {
     try {
       if (type === 'USER') {
-        await api.put(`/admin/users/${id}`, { isBlocked: action === 'BLOCK' });
-        await loadUsers();
-        alert('İşlem başarıyla tamamlandı');
+        const isBlocked = action === 'BLOCK';
+        await api.put(`/admin/users/${id}/block`, { isBlocked });
+        await fetchData();
+        alert(isBlocked ? 'Kullanıcı engellendi' : 'Kullanıcı engeli kaldırıldı');
       } else if (type === 'DEPOSIT') {
         await api.post(`/admin/deposits/${id}/${action.toLowerCase()}`);
         await fetchData();
         alert('Depozit işlemi başarıyla tamamlandı');
       }
     } catch (error) {
-      console.error('Əməliyyat xətası:', error);
-      alert('Əməliyyat zamanı xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      console.error('İşlem hatası:', error);
+      alert('İşlem sırasında hata oluştu: ' + (error.response?.data?.message || error.message));
     }
   };
 
