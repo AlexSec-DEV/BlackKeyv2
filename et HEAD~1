@@ -1,0 +1,5 @@
+[33mcommit 66a51a700711e1b106473d6b28fb00e1f2734dfb[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m)[m
+Author: AlexSec-DEV <alexsec0688@gmail.com>
+Date:   Thu Jan 16 20:51:33 2025 +0200
+
+    Kullanici bloklama endpoint'leri backend ile uyumlu hale getirildi
