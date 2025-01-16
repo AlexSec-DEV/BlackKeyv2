@@ -111,12 +111,21 @@ router.post('/', auth, async (req, res) => {
     });
 
     user.balance -= amount;
-    user.xp += 18;
 
-    if (user.xp >= user.nextLevelXp) {
-      user.level += 1;
-      user.nextLevelXp = user.nextLevelXp * 2;
-    }
+    // XP ve Level hesaplama
+    const xpGain = 18; // Her yatırımda kazanılan XP
+    const xpForNextLevel = 100; // Her level için gereken XP
+
+    // Yeni toplam XP'yi hesapla
+    const totalXP = user.xp + xpGain;
+
+    // Level artışını ve kalan XP'yi hesapla
+    const levelIncrease = Math.floor(totalXP / xpForNextLevel);
+    const remainingXP = totalXP % xpForNextLevel;
+
+    // Level ve XP'yi güncelle
+    user.level += levelIncrease;
+    user.xp = remainingXP;
 
     await Promise.all([investment.save(), user.save()]);
 
@@ -129,8 +138,7 @@ router.post('/', auth, async (req, res) => {
       user: {
         balance: user.balance,
         xp: user.xp,
-        level: user.level,
-        nextLevelXp: user.nextLevelXp
+        level: user.level
       }
     });
   } catch (error) {
