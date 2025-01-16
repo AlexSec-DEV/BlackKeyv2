@@ -146,7 +146,8 @@ const AdminPanel = () => {
   const handleAction = async (type, id, action) => {
     try {
       if (type === 'USER') {
-        await api.post(`/admin/users/${id}/${action.toLowerCase()}`);
+        const endpoint = action === 'BLOCK' ? 'block' : 'unblock';
+        await api.post(`/admin/users/${id}/${endpoint}`);
         await loadUsers();
         alert('İşlem başarıyla tamamlandı');
       } else if (type === 'DEPOSIT') {
