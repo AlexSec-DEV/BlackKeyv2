@@ -146,13 +146,17 @@ const AdminPanel = () => {
   const handleAction = async (type, id, action) => {
     try {
       if (type === 'USER') {
-        const endpoint = action === 'BLOCK' ? 'block' : 'unblock';
-        await api.post(`/admin/users/${id}/${endpoint}`);
+        await api.post(`/admin/users/${id}/${action.toLowerCase()}`);
         await loadUsers();
+        alert('İşlem başarıyla tamamlandı');
+      } else if (type === 'DEPOSIT') {
+        await api.post(`/admin/deposits/${id}/${action.toLowerCase()}`);
+        await fetchData();
+        alert('Depozit işlemi başarıyla tamamlandı');
       }
     } catch (error) {
       console.error('Əməliyyat xətası:', error);
-      alert('Əməliyyat zamanı xəta baş verdi: ' + error.response?.data?.message);
+      alert('Əməliyyat zamanı xəta baş verdi: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -389,9 +393,7 @@ const AdminPanel = () => {
         <tr>
           <th>İstifadəçi</th>
           <th>Məbləğ</th>
-          <th>Ödəniş Üsulu</th>
           <th>Tarix</th>
-          <th>Qəbz</th>
           <th>Status</th>
           <th>Əməliyyatlar</th>
         </tr>
@@ -399,45 +401,24 @@ const AdminPanel = () => {
       <tbody>
         {deposits.map(deposit => (
           <tr key={deposit._id}>
-            <td>{deposit.user?.username}</td>
-            <td>{deposit.amount} AZN</td>
-            <td>{deposit.paymentMethod}</td>
-            <td>{new Date(deposit.createdAt).toLocaleString()}</td>
-            <td>
-              {deposit.receiptUrl && (
-                <button 
-                  className="view-receipt-btn"
-                  onClick={() => {
-                    const cloudinaryUrl = deposit.receiptUrl.includes('https://res.cloudinary.com/') 
-                      ? deposit.receiptUrl.substring(deposit.receiptUrl.indexOf('https://res.cloudinary.com/'))
-                      : deposit.receiptUrl;
-                    console.log('Opening image:', cloudinaryUrl);
-                    setSelectedImage(cloudinaryUrl);
-                  }}
-                >
-                  <FaCreditCard /> Göstər
-                </button>
-              )}
-            </td>
-            <td>
-              <span className={`status ${deposit.status.toLowerCase()}`}>
-                {getStatusText(deposit.status)}
-              </span>
-            </td>
+            <td>{deposit.user?.username || 'N/A'}</td>
+            <td>{deposit.amount}</td>
+            <td>{formatDate(deposit.createdAt)}</td>
+            <td>{getStatusText(deposit.status)}</td>
             <td>
               {deposit.status === 'PENDING' && (
                 <>
-                  <button 
+                  <button
                     className="approve-btn"
                     onClick={() => handleAction('DEPOSIT', deposit._id, 'APPROVE')}
                   >
-                    <FaCheckCircle /> Təsdiqlə
+                    Təsdiqlə
                   </button>
-                  <button 
+                  <button
                     className="reject-btn"
                     onClick={() => handleAction('DEPOSIT', deposit._id, 'REJECT')}
                   >
-                    <FaTimesCircle /> Rədd Et
+                    Rədd Et
                   </button>
                 </>
               )}
