@@ -146,7 +146,7 @@ const AdminPanel = () => {
   const handleAction = async (type, id, action) => {
     try {
       if (type === 'USER') {
-        await api.post(`/admin/user/${id}/${action.toLowerCase()}`);
+        await api.put(`/admin/users/${id}`, { isBlocked: action === 'BLOCK' });
         await loadUsers();
         alert('İşlem başarıyla tamamlandı');
       } else if (type === 'DEPOSIT') {
@@ -274,7 +274,7 @@ const AdminPanel = () => {
 
   const loadUsers = async () => {
     try {
-      const response = await api.get('/admin/user');
+      const response = await api.get('/admin/users');
       setUsers(response.data);
     } catch (error) {
       console.error('Kullanıcılar yüklenirken hata:', error);
