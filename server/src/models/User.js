@@ -51,10 +51,11 @@ const userSchema = new mongoose.Schema({
     },
     ipAddress: {
         type: String,
-        required: true
+        default: ''
     },
     lastLoginIp: {
-        type: String
+        type: String,
+        default: ''
     },
     lastLoginDate: {
         type: Date

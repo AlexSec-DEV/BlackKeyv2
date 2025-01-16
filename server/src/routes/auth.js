@@ -264,7 +264,7 @@ router.post('/login', checkBlockedIP, async (req, res) => {
                req.headers['x-real-ip'] || 
                req.connection.remoteAddress || 
                req.socket.remoteAddress || 
-               req.ip;
+               req.ip || '';
 
     console.log('Login IP:', ip); // Debug için
 
@@ -298,9 +298,14 @@ router.post('/login', checkBlockedIP, async (req, res) => {
     }
 
     // Son giriş bilgilerini güncelle
-    user.lastLoginIp = ip;
-    user.lastLoginDate = new Date();
-    await user.save();
+    if (ip) {
+      user.lastLoginIp = ip;
+      if (!user.ipAddress) {
+        user.ipAddress = ip;
+      }
+      user.lastLoginDate = new Date();
+      await user.save();
+    }
 
     // Token oluştur
     const token = jwt.sign(
@@ -326,8 +331,8 @@ router.post('/login', checkBlockedIP, async (req, res) => {
         phoneNumber: user.phoneNumber,
         country: user.country,
         birthDate: user.birthDate,
-        ipAddress: user.ipAddress,
-        lastLoginIp: user.lastLoginIp,
+        ipAddress: user.ipAddress || ip,
+        lastLoginIp: user.lastLoginIp || ip,
         lastLoginDate: user.lastLoginDate
       }
     });
