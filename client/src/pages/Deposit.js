@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Deposit.css';
+import { Button } from '@mui/material';
 
 const Deposit = () => {
   const { user, api } = useAuth();
@@ -206,9 +207,24 @@ const Deposit = () => {
           />
         </div>
 
-        <button type="submit" className="submit-btn" disabled={loading}>
+        <Button
+          variant="contained"
+          color="primary"
+          fullWidth
+          type="submit"
+          disabled={loading}
+          sx={{
+            mt: 2,
+            py: 1.5,
+            fontSize: '1rem',
+            backgroundColor: '#2196f3',
+            '&:hover': {
+              backgroundColor: '#1976d2'
+            }
+          }}
+        >
           {loading ? 'YÜKLƏNIR...' : 'BALANS ARTIR'}
-        </button>
+        </Button>
       </form>
     </div>
   );
