@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Deposit.css';
 import { Button } from '@mui/material';
+import { FaCreditCard, FaMobile, FaBitcoin } from 'react-icons/fa';
 
 const Deposit = () => {
   const { user, api } = useAuth();
@@ -74,7 +75,6 @@ const Deposit = () => {
         if (fileInput) {
           fileInput.value = '';
         }
-        alert('Balans artırma tələbiniz qəbul edildi. Adminlər tərəfindən yoxlanıldıqdan sonra balansınız artırılacaq.');
       }
     } catch (err) {
       console.error('Deposit error:', err);
@@ -185,31 +185,34 @@ const Deposit = () => {
 
       <form onSubmit={handleSubmit} className="deposit-form">
         <div className="payment-methods">
-          <label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input
               type="radio"
               value="CREDIT_CARD"
               checked={paymentMethod === 'CREDIT_CARD'}
               onChange={(e) => handlePaymentMethodChange(e.target.value)}
             />
+            <FaCreditCard style={{ fontSize: '20px' }} />
             Kredit Kartı
           </label>
-          <label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input
               type="radio"
               value="M10"
               checked={paymentMethod === 'M10'}
               onChange={(e) => handlePaymentMethodChange(e.target.value)}
             />
+            <FaMobile style={{ fontSize: '20px' }} />
             M10
           </label>
-          <label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <input
               type="radio"
               value="CRYPTO"
               checked={paymentMethod === 'CRYPTO'}
               onChange={(e) => handlePaymentMethodChange(e.target.value)}
             />
+            <FaBitcoin style={{ fontSize: '20px' }} />
             Kripto
           </label>
         </div>
