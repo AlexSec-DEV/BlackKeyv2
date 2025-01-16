@@ -172,63 +172,49 @@ router.put('/profile', auth, async (req, res) => {
 });
 
 // Kayıt ol
-router.post('/register', checkBlockedIP, async (req, res) => {
+router.post('/register', async (req, res) => {
   try {
-    const { username, email, password } = req.body;
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
-               req.headers['x-real-ip'] || 
-               req.connection.remoteAddress || 
-               req.socket.remoteAddress || 
-               req.ip;
-
-    const existingUser = await User.findOne({
-      $or: [{ email }, { username }]
-    });
-
-    if (existingUser) {
-      return res.status(400).json({
-        message: 'Bu email veya kullanıcı adı zaten kullanılıyor'
+    // IP kontrolü
+    const clientIP = req.ip || req.connection.remoteAddress;
+    const isIPBlocked = await BlockedIP.findOne({ ipAddress: clientIP });
+    
+    if (isIPBlocked) {
+      return res.status(403).json({ 
+        message: 'Bu IP adresi bloklanmışdır',
+        reason: isIPBlocked.reason 
       });
+    }
+
+    const { username, email, password } = req.body;
+
+    // Kullanıcı adı kontrolü
+    const existingUsername = await User.findOne({ username });
+    if (existingUsername) {
+      return res.status(400).json({ message: 'Bu istifadəçi adı artıq istifadə olunur' });
+    }
+
+    // Email kontrolü
+    const existingEmail = await User.findOne({ email });
+    if (existingEmail) {
+      return res.status(400).json({ message: 'Bu email artıq istifadə olunur' });
     }
 
     const user = new User({
       username,
       email,
       password,
-      ipAddress: ip,
-      lastLoginIp: ip,
+      ipAddress: clientIP,
+      lastLoginIp: clientIP,
       lastLoginDate: new Date()
     });
 
     await user.save();
+    const token = await user.generateAuthToken();
 
-    const token = jwt.sign(
-      { id: user._id },
-      process.env.JWT_SECRET || 'blackkey2024secret',
-      { expiresIn: '24h' }
-    );
-
-    res.status(201).json({
-      token,
-      user: {
-        _id: user._id,
-        username: user.username,
-        email: user.email,
-        isAdmin: user.isAdmin,
-        isBlocked: user.isBlocked,
-        balance: user.balance,
-        level: user.level,
-        xp: user.xp,
-        nextLevelXp: user.nextLevelXp,
-        profileImage: user.profileImage,
-        ipAddress: user.ipAddress,
-        lastLoginIp: user.lastLoginIp,
-        lastLoginDate: user.lastLoginDate
-      }
-    });
+    res.status(201).json({ user, token });
   } catch (error) {
-    console.error('Kayıt hatası:', error);
-    res.status(500).json({ message: error.message });
+    console.error('Registration error:', error);
+    res.status(500).json({ message: 'Qeydiyyat zamanı xəta baş verdi' });
   }
 });
 

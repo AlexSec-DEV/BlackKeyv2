@@ -444,8 +444,68 @@ const AdminPanel = () => {
     </table>
   );
 
+  const handleBlockUserIP = async (ipAddress, username) => {
+    try {
+      const reason = prompt(`${username} istifadəçisinin ${ipAddress} IP adresini bloklamaq üçün səbəb yazın:`);
+      if (!reason) return;
+
+      await api.post('/admin/block-ip', { ipAddress, reason });
+      alert('IP adresi başarıyla bloklandı');
+      await loadBlockedIPs();
+      await fetchData(); // Kullanıcı listesini yenile
+    } catch (error) {
+      console.error('IP bloklama hatası:', error);
+      alert('IP bloklama işlemi başarısız: ' + error.response?.data?.message);
+    }
+  };
+
+  const renderIPMonitorTable = () => (
+    <table>
+      <thead>
+        <tr>
+          <th>İstifadəçi Adı</th>
+          <th>Qeydiyyat IP</th>
+          <th>Son Giriş IP</th>
+          <th>Qeydiyyat Tarixi</th>
+          <th>Son Giriş Tarixi</th>
+          <th>Əməliyyatlar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {users.map(user => (
+          <tr key={user._id}>
+            <td>{user.username}</td>
+            <td>{user.ipAddress || 'N/A'}</td>
+            <td>{user.lastLoginIp || 'N/A'}</td>
+            <td>{formatDate(user.createdAt)}</td>
+            <td>{formatDate(user.lastLoginDate)}</td>
+            <td>
+              {user.lastLoginIp && !user.isAdmin && (
+                <button
+                  className="block-btn"
+                  onClick={() => handleBlockUserIP(user.lastLoginIp, user.username)}
+                >
+                  IP Blokla
+                </button>
+              )}
+              {user.ipAddress && user.ipAddress !== user.lastLoginIp && !user.isAdmin && (
+                <button
+                  className="block-btn"
+                  onClick={() => handleBlockUserIP(user.ipAddress, user.username)}
+                >
+                  Qeydiyyat IP Blokla
+                </button>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
   const tabs = [
     { id: 'USERS', label: 'İstifadəçilər' },
+    { id: 'IP_MONITOR', label: 'IP Nəzarət' },
     { id: 'BLOCKED_IPS', label: 'Bloklanmış IP\'lər' },
     { id: 'DEPOSITS', label: 'Depozitlər' },
     { id: 'WITHDRAWALS', label: 'Çıxarışlar' },
@@ -489,6 +549,7 @@ const AdminPanel = () => {
 
       <div className="content">
         {activeTab === 'USERS' && renderUserTable()}
+        {activeTab === 'IP_MONITOR' && renderIPMonitorTable()}
         {activeTab === 'BLOCKED_IPS' && renderBlockedIPsTable()}
         {activeTab === 'DEPOSITS' && renderDepositsTable()}
         {activeTab === 'WITHDRAWALS' && (
