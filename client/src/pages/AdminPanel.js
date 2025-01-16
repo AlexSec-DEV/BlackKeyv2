@@ -145,21 +145,14 @@ const AdminPanel = () => {
 
   const handleAction = async (type, id, action) => {
     try {
-      let endpoint;
       if (type === 'USER') {
-        endpoint = `/admin/users/${id}/${action.toLowerCase()}`;
-      } else if (type === 'DEPOSIT') {
-        endpoint = `/admin/deposits/${id}/${action.toLowerCase()}`;
-      } else if (type === 'WITHDRAWAL') {
-        endpoint = `/admin/withdrawals/${id}/${action.toLowerCase()}`;
+        const endpoint = action === 'BLOCK' ? 'block' : 'unblock';
+        await api.post(`/admin/users/${id}/${endpoint}`);
+        await loadUsers();
       }
-
-      await api.post(endpoint);
-      await fetchData();
-      alert('Əməliyyat uğurla tamamlandı');
     } catch (error) {
       console.error('Əməliyyat xətası:', error);
-      alert('Əməliyyat zamanı xəta baş verdi: ' + (error.response?.data?.message || error.message));
+      alert('Əməliyyat zamanı xəta baş verdi: ' + error.response?.data?.message);
     }
   };
 
@@ -318,6 +311,7 @@ const AdminPanel = () => {
           <th>İstifadəçi Adı</th>
           <th>Email</th>
           <th>Son Giriş Tarixi</th>
+          <th>Level</th>
           <th>Balans</th>
           <th>Status</th>
           <th>Əməliyyatlar</th>
@@ -329,6 +323,7 @@ const AdminPanel = () => {
             <td>{user.username}</td>
             <td>{user.email}</td>
             <td>{formatDate(user.lastLoginDate)}</td>
+            <td>{user.level}</td>
             <td>{user.balance}</td>
             <td>{getStatusText(user.isBlocked)}</td>
             <td>
