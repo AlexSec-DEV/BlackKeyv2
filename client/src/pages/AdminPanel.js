@@ -112,29 +112,21 @@ const AdminPanel = () => {
 
   const handleAction = async (type, id, action) => {
     try {
-      let response;
-      if (type === 'DEPOSIT') {
-        response = await api.post(`/admin/deposits/${id}/${action.toLowerCase()}`);
+      let endpoint;
+      if (type === 'USER') {
+        endpoint = `/admin/users/${id}/${action.toLowerCase()}`;
+      } else if (type === 'DEPOSIT') {
+        endpoint = `/admin/deposits/${id}/${action.toLowerCase()}`;
       } else if (type === 'WITHDRAWAL') {
-        response = await api.post(`/admin/withdrawals/${id}/${action.toLowerCase()}`);
-      } else if (type === 'USER') {
-        response = await api.post(`/admin/users/${id}/block`, {
-          action: action.toLowerCase()
-        });
+        endpoint = `/admin/withdrawals/${id}/${action.toLowerCase()}`;
       }
-      
-      if (response?.data?.message) {
-        alert(response.data.message);
-      } else if (type === 'USER') {
-        alert(action === 'BLOCK' ? 'Kullanıcı engellendi' : 'Kullanıcının engeli kaldırıldı');
-      } else {
-        alert(action === 'APPROVE' ? 'İşlem onaylandı' : 'İşlem reddedildi');
-      }
-      
-      fetchData();
+
+      await api.post(endpoint);
+      await fetchData();
+      alert('Əməliyyat uğurla tamamlandı');
     } catch (error) {
-      console.error('Action error:', error);
-      alert('Hata: ' + (error.response?.data?.message || 'İşlem sırasında bir hata oluştu'));
+      console.error('Əməliyyat xətası:', error);
+      alert('Əməliyyat zamanı xəta baş verdi: ' + (error.response?.data?.message || error.message));
     }
   };
 
@@ -149,7 +141,7 @@ const AdminPanel = () => {
       case 'APPROVED':
         return 'Təsdiqləndi';
       case 'REJECTED':
-        return 'Rədd edildi';
+        return 'Rədd Edildi';
       default:
         return status;
     }
@@ -189,33 +181,33 @@ const AdminPanel = () => {
     const details = withdrawal.transactionDetails || {};
 
     if (!details || Object.keys(details).length === 0) {
-      return 'Detay bulunmuyor';
+      return 'Detal yoxdur';
     }
 
     if (method === 'CREDIT_CARD') {
       return (
         <>
-          <Typography variant="body2">Banka: {details.bankName || withdrawal.bankName || 'Belirtilmemiş'}</Typography>
-          <Typography variant="body2">Hesap Sahibi: {details.accountHolder || withdrawal.accountHolder || 'Belirtilmemiş'}</Typography>
-          <Typography variant="body2">Kart No: {details.cardNumber || withdrawal.cardNumber || 'Belirtilmemiş'}</Typography>
+          <Typography variant="body2">Bank: {details.bankName || withdrawal.bankName || 'Göstərilməyib'}</Typography>
+          <Typography variant="body2">Hesab Sahibi: {details.accountHolder || withdrawal.accountHolder || 'Göstərilməyib'}</Typography>
+          <Typography variant="body2">Kart Nömrəsi: {details.cardNumber || withdrawal.cardNumber || 'Göstərilməyib'}</Typography>
         </>
       );
     } else if (method === 'M10') {
       return (
         <>
-          <Typography variant="body2">M10 Hesab: {details.m10AccountNumber || withdrawal.m10AccountNumber || 'Belirtilmemiş'}</Typography>
+          <Typography variant="body2">M10 Hesabı: {details.m10AccountNumber || withdrawal.m10AccountNumber || 'Göstərilməyib'}</Typography>
         </>
       );
     } else if (method === 'CRYPTO') {
       return (
         <>
-          <Typography variant="body2">Adres: {details.cryptoAddress || withdrawal.cryptoAddress || 'Belirtilmemiş'}</Typography>
-          <Typography variant="body2">Ağ: {details.cryptoNetwork || withdrawal.cryptoNetwork || 'Belirtilmemiş'}</Typography>
+          <Typography variant="body2">Ünvan: {details.cryptoAddress || withdrawal.cryptoAddress || 'Göstərilməyib'}</Typography>
+          <Typography variant="body2">Şəbəkə: {details.cryptoNetwork || withdrawal.cryptoNetwork || 'Göstərilməyib'}</Typography>
         </>
       );
     }
 
-    return 'Bilinmeyen ödeme yöntemi';
+    return 'Naməlum ödəniş üsulu';
   };
 
   const handleCloseImage = () => {
@@ -284,71 +276,64 @@ const AdminPanel = () => {
   };
 
   const renderUserTable = () => (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>ID</TableCell>
-            <TableCell>Kullanıcı Adı</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>IP Adresi</TableCell>
-            <TableCell>Son Giriş IP</TableCell>
-            <TableCell>Son Giriş Tarihi</TableCell>
-            <TableCell>Bakiye</TableCell>
-            <TableCell>Durum</TableCell>
-            <TableCell>İşlemler</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user._id}>
-              <TableCell>{user._id}</TableCell>
-              <TableCell>{user.username}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>{user.ipAddress || 'N/A'}</TableCell>
-              <TableCell>{user.lastLoginIp || 'N/A'}</TableCell>
-              <TableCell>
-                {user.lastLoginDate ? new Date(user.lastLoginDate).toLocaleString() : 'N/A'}
-              </TableCell>
-              <TableCell>{user.balance}</TableCell>
-              <TableCell>
-                <Chip
-                  label={user.isBlocked ? 'Engelli' : 'Aktif'}
-                  color={user.isBlocked ? 'error' : 'success'}
-                />
-              </TableCell>
-              <TableCell>
-                <ButtonGroup variant="text">
-                  {!user.isAdmin && (
-                    <Button
-                      onClick={() => handleAction('user', user._id, user.isBlocked ? 'unblock' : 'block')}
-                      color={user.isBlocked ? 'success' : 'error'}
-                      startIcon={user.isBlocked ? <LockOpenIcon /> : <BlockIcon />}
-                    >
-                      {user.isBlocked ? 'Engeli Kaldır' : 'Engelle'}
-                    </Button>
-                  )}
-                  {user.ipAddress && (
-                    <Button
-                      onClick={() => {
-                        const reason = prompt('IP bloklama sebebini girin:');
-                        if (reason) {
-                          handleBlockIP(user.ipAddress, reason);
-                        }
-                      }}
-                      color="error"
-                      startIcon={<BlockIcon />}
-                    >
-                      IP Blokla
-                    </Button>
-                  )}
-                </ButtonGroup>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <table>
+      <thead>
+        <tr>
+          <th>ID</th>
+          <th>İstifadəçi Adı</th>
+          <th>Email</th>
+          <th>IP Ünvanı</th>
+          <th>Son Giriş IP</th>
+          <th>Son Giriş Tarixi</th>
+          <th>Balans</th>
+          <th>Status</th>
+          <th>Əməliyyatlar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {users.map((user) => (
+          <tr key={user._id}>
+            <td>{user._id}</td>
+            <td>{user.username}</td>
+            <td>{user.email}</td>
+            <td>{user.ipAddress || 'N/A'}</td>
+            <td>{user.lastLoginIp || 'N/A'}</td>
+            <td>
+              {user.lastLoginDate ? new Date(user.lastLoginDate).toLocaleString() : 'N/A'}
+            </td>
+            <td>{user.balance}</td>
+            <td>
+              <span className={`status ${user.isBlocked ? 'rejected' : 'approved'}`}>
+                {user.isBlocked ? 'Bloklanıb' : 'Aktiv'}
+              </span>
+            </td>
+            <td>
+              {!user.isAdmin && (
+                <button
+                  className={user.isBlocked ? 'approve-btn' : 'reject-btn'}
+                  onClick={() => handleAction('USER', user._id, user.isBlocked ? 'UNBLOCK' : 'BLOCK')}
+                >
+                  {user.isBlocked ? 'Bloku Aç' : 'Blokla'}
+                </button>
+              )}
+              {user.ipAddress && (
+                <button
+                  className="reject-btn"
+                  onClick={() => {
+                    const reason = prompt('IP bloklama səbəbini daxil edin:');
+                    if (reason) {
+                      handleBlockIP(user.ipAddress, reason);
+                    }
+                  }}
+                >
+                  IP Blokla
+                </button>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 
   const loadBlockedIPs = async () => {
@@ -361,48 +346,43 @@ const AdminPanel = () => {
   };
 
   const renderBlockedIPsTable = () => (
-    <TableContainer component={Paper}>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>IP Adresi</TableCell>
-            <TableCell>Blok Sebebi</TableCell>
-            <TableCell>Blok Tarihi</TableCell>
-            <TableCell>Blok Yapan Admin</TableCell>
-            <TableCell>İşlemler</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {blockedIPs.map((blockedIP) => (
-            <TableRow key={blockedIP._id}>
-              <TableCell>{blockedIP.ipAddress}</TableCell>
-              <TableCell>{blockedIP.reason || 'Sebep belirtilmemiş'}</TableCell>
-              <TableCell>
-                {new Date(blockedIP.blockedAt).toLocaleString()}
-              </TableCell>
-              <TableCell>{blockedIP.blockedBy?.username || 'N/A'}</TableCell>
-              <TableCell>
-                <Button
-                  onClick={() => handleUnblockIP(blockedIP.ipAddress)}
-                  color="success"
-                  startIcon={<LockOpenIcon />}
-                >
-                  Bloğu Kaldır
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
+    <table>
+      <thead>
+        <tr>
+          <th>IP Ünvanı</th>
+          <th>Blok Səbəbi</th>
+          <th>Blok Tarixi</th>
+          <th>Bloklayan Admin</th>
+          <th>Əməliyyatlar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {blockedIPs.map((blockedIP) => (
+          <tr key={blockedIP._id}>
+            <td>{blockedIP.ipAddress}</td>
+            <td>{blockedIP.reason || 'Səbəb göstərilməyib'}</td>
+            <td>{new Date(blockedIP.blockedAt).toLocaleString()}</td>
+            <td>{blockedIP.blockedBy?.username || 'N/A'}</td>
+            <td>
+              <button
+                className="approve-btn"
+                onClick={() => handleUnblockIP(blockedIP.ipAddress)}
+              >
+                Bloku Aç
+              </button>
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
   );
 
   const tabs = [
-    { id: 'USERS', label: 'Kullanıcılar' },
-    { id: 'BLOCKED_IPS', label: 'Bloklu IP\'ler' },
-    { id: 'DEPOSITS', label: 'Para Yatırma' },
-    { id: 'WITHDRAWALS', label: 'Para Çekme' },
-    { id: 'SETTINGS', label: 'Ayarlar' }
+    { id: 'USERS', label: 'İstifadəçilər' },
+    { id: 'BLOCKED_IPS', label: 'Bloklanmış IP\'lər' },
+    { id: 'DEPOSITS', label: 'Depozitlər' },
+    { id: 'WITHDRAWALS', label: 'Çıxarışlar' },
+    { id: 'SETTINGS', label: 'Tənzimləmələr' }
   ];
 
   return (
@@ -445,124 +425,108 @@ const AdminPanel = () => {
         {activeTab === 'USERS' && renderUserTable()}
         {activeTab === 'BLOCKED_IPS' && renderBlockedIPsTable()}
         {activeTab === 'DEPOSITS' && (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>İstifadəçi</TableCell>
-                  <TableCell>Məbləğ</TableCell>
-                  <TableCell>Ödəniş Üsulu</TableCell>
-                  <TableCell>Tarix</TableCell>
-                  <TableCell>Qəbz</TableCell>
-                  <TableCell>Əməliyyatlar</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {deposits.map(deposit => (
-                  <TableRow key={deposit._id}>
-                    <TableCell>{deposit.user?.username}</TableCell>
-                    <TableCell>{deposit.amount} AZN</TableCell>
-                    <TableCell>{deposit.paymentMethod}</TableCell>
-                    <TableCell>{new Date(deposit.createdAt).toLocaleString()}</TableCell>
-                    <TableCell>
-                      {deposit.receipt && (
-                        <Button onClick={() => setSelectedImage(deposit.receipt)}>
-                          Qəbzi Göstər
-                        </Button>
-                      )}
-                    </TableCell>
-                    <TableCell>
-                      {deposit.status === 'PENDING' && (
-                        <>
-                          <Button
-                            variant="contained"
-                            color="success"
-                            size="small"
-                            onClick={() => handleAction('DEPOSIT', deposit._id, 'APPROVE')}
-                            sx={{ mr: 1 }}
-                          >
-                            Təsdiqlə
-                          </Button>
-                          <Button
-                            variant="contained"
-                            color="error"
-                            size="small"
-                            onClick={() => handleAction('DEPOSIT', deposit._id, 'REJECT')}
-                          >
-                            Rədd Et
-                          </Button>
-                        </>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <table>
+            <thead>
+              <tr>
+                <th>İstifadəçi</th>
+                <th>Məbləğ</th>
+                <th>Ödəniş Üsulu</th>
+                <th>Tarix</th>
+                <th>Qəbz</th>
+                <th>Əməliyyatlar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deposits.map(deposit => (
+                <tr key={deposit._id}>
+                  <td>{deposit.user?.username}</td>
+                  <td>{deposit.amount} AZN</td>
+                  <td>{deposit.paymentMethod}</td>
+                  <td>{new Date(deposit.createdAt).toLocaleString()}</td>
+                  <td>
+                    {deposit.receipt && (
+                      <button className="view-receipt-btn" onClick={() => setSelectedImage(deposit.receipt)}>
+                        <FaCreditCard /> Göstər
+                      </button>
+                    )}
+                  </td>
+                  <td>
+                    {deposit.status === 'PENDING' && (
+                      <>
+                        <button 
+                          className="approve-btn"
+                          onClick={() => handleAction('DEPOSIT', deposit._id, 'APPROVE')}
+                        >
+                          <FaCheckCircle /> Təsdiqlə
+                        </button>
+                        <button 
+                          className="reject-btn"
+                          onClick={() => handleAction('DEPOSIT', deposit._id, 'REJECT')}
+                        >
+                          <FaTimesCircle /> Rədd Et
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
 
         {activeTab === 'WITHDRAWALS' && (
-          <TableContainer component={Paper}>
-            <Table>
-              <TableHead>
-                <TableRow>
-                  <TableCell>Tarix</TableCell>
-                  <TableCell>İstifadəçi</TableCell>
-                  <TableCell>Məbləğ</TableCell>
-                  <TableCell>Ödəniş Üsulu</TableCell>
-                  <TableCell>Detaylar</TableCell>
-                  <TableCell>Vəziyyət</TableCell>
-                  <TableCell>Əməliyyatlar</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {withdrawals.map((withdrawal) => (
-                  <TableRow key={withdrawal._id}>
-                    <TableCell>{new Date(withdrawal.createdAt).toLocaleString()}</TableCell>
-                    <TableCell>{withdrawal.user?.username || 'Bilinmeyen İstifadəçi'}</TableCell>
-                    <TableCell>{withdrawal.amount} AZN</TableCell>
-                    <TableCell>
-                      {(withdrawal.withdrawMethod || withdrawal.paymentMethod) === 'CREDIT_CARD' ? 'Karta Köçürmə' :
-                       (withdrawal.withdrawMethod || withdrawal.paymentMethod) === 'm10' ? 'M10' :
-                       (withdrawal.withdrawMethod || withdrawal.paymentMethod) === 'CRYPTO' ? 'Kripto Para' :
-                       withdrawal.withdrawMethod || withdrawal.paymentMethod}
-                    </TableCell>
-                    <TableCell>{renderWithdrawalDetails(withdrawal)}</TableCell>
-                    <TableCell>
-                      <Chip
-                        label={getStatusText(withdrawal.status)}
-                        color={getStatusColor(withdrawal.status)}
-                        icon={getStatusIcon(withdrawal.status)}
-                      />
-                    </TableCell>
-                    <TableCell>
-                      {withdrawal.status === 'PENDING' && (
-                        <>
-                          <Button
-                            variant="contained"
-                            color="success"
-                            size="small"
-                            onClick={() => handleAction('WITHDRAWAL', withdrawal._id, 'APPROVE')}
-                            sx={{ mr: 1 }}
-                          >
-                            Təsdiqlə
-                          </Button>
-                          <Button
-                            variant="contained"
-                            color="error"
-                            size="small"
-                            onClick={() => handleAction('WITHDRAWAL', withdrawal._id, 'REJECT')}
-                          >
-                            Rədd Et
-                          </Button>
-                        </>
-                      )}
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </TableContainer>
+          <table>
+            <thead>
+              <tr>
+                <th>Tarix</th>
+                <th>İstifadəçi</th>
+                <th>Məbləğ</th>
+                <th>Ödəniş Üsulu</th>
+                <th>Detallar</th>
+                <th>Status</th>
+                <th>Əməliyyatlar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {withdrawals.map((withdrawal) => (
+                <tr key={withdrawal._id}>
+                  <td>{new Date(withdrawal.createdAt).toLocaleString()}</td>
+                  <td>{withdrawal.user?.username || 'Naməlum İstifadəçi'}</td>
+                  <td>{withdrawal.amount} AZN</td>
+                  <td>
+                    {(withdrawal.withdrawMethod || withdrawal.paymentMethod) === 'CREDIT_CARD' ? 'Karta Köçürmə' :
+                     (withdrawal.withdrawMethod || withdrawal.paymentMethod) === 'm10' ? 'M10' :
+                     (withdrawal.withdrawMethod || withdrawal.paymentMethod) === 'CRYPTO' ? 'Kripto' :
+                     withdrawal.withdrawMethod || withdrawal.paymentMethod}
+                  </td>
+                  <td>{renderWithdrawalDetails(withdrawal)}</td>
+                  <td>
+                    <span className={`status ${withdrawal.status.toLowerCase()}`}>
+                      {getStatusText(withdrawal.status)}
+                    </span>
+                  </td>
+                  <td>
+                    {withdrawal.status === 'PENDING' && (
+                      <>
+                        <button 
+                          className="approve-btn"
+                          onClick={() => handleAction('WITHDRAWAL', withdrawal._id, 'APPROVE')}
+                        >
+                          <FaCheckCircle /> Təsdiqlə
+                        </button>
+                        <button 
+                          className="reject-btn"
+                          onClick={() => handleAction('WITHDRAWAL', withdrawal._id, 'REJECT')}
+                        >
+                          <FaTimesCircle /> Rədd Et
+                        </button>
+                      </>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
         )}
 
         {activeTab === 'SETTINGS' && (
@@ -578,7 +542,7 @@ const AdminPanel = () => {
                     <TableCell>Faiz Oranı (%)</TableCell>
                     <TableCell>Min. Miktar</TableCell>
                     <TableCell>Max. Miktar</TableCell>
-                    <TableCell>İşlemler</TableCell>
+                    <TableCell>Əməliyyatlar</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
