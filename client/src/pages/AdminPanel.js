@@ -121,9 +121,9 @@ const AdminPanel = () => {
         endpoint = `/admin/withdrawals/${id}/${action.toLowerCase()}`;
       }
 
-      await api.post(endpoint);
+      const response = await api.post(endpoint);
       await fetchData();
-      alert('Əməliyyat uğurla tamamlandı');
+      alert(response.data?.message || 'Əməliyyat uğurla tamamlandı');
     } catch (error) {
       console.error('Əməliyyat xətası:', error);
       alert('Əməliyyat zamanı xəta baş verdi: ' + (error.response?.data?.message || error.message));
@@ -254,24 +254,22 @@ const AdminPanel = () => {
   const handleBlockIP = async (ipAddress, reason) => {
     try {
       await api.post('/admin/block-ip', { ipAddress, reason });
-      alert('IP adresi başarıyla bloklandı');
-      await loadUsers();
+      alert('IP ünvanı uğurla bloklandı');
       await loadBlockedIPs();
     } catch (error) {
-      console.error('IP bloklama hatası:', error);
-      alert('IP bloklanırken bir hata oluştu');
+      console.error('IP bloklama xətası:', error);
+      alert('IP bloklanarkən xəta baş verdi');
     }
   };
 
   const handleUnblockIP = async (ipAddress) => {
     try {
       await api.delete(`/admin/unblock-ip/${ipAddress}`);
-      alert('IP bloğu başarıyla kaldırıldı');
-      await loadUsers();
+      alert('IP bloku uğurla qaldırıldı');
       await loadBlockedIPs();
     } catch (error) {
-      console.error('IP bloğu kaldırma hatası:', error);
-      alert('IP bloğu kaldırılırken bir hata oluştu');
+      console.error('IP bloku qaldırma xətası:', error);
+      alert('IP bloku qaldırılarkən xəta baş verdi');
     }
   };
 
@@ -287,7 +285,8 @@ const AdminPanel = () => {
           <th>Son Giriş Tarixi</th>
           <th>Balans</th>
           <th>Status</th>
-          <th>Əməliyyatlar</th>
+          <th>İstifadəçi Əməliyyatları</th>
+          <th>IP Əməliyyatları</th>
         </tr>
       </thead>
       <tbody>
@@ -316,9 +315,11 @@ const AdminPanel = () => {
                   {user.isBlocked ? 'Bloku Aç' : 'Blokla'}
                 </button>
               )}
+            </td>
+            <td>
               {user.ipAddress && (
                 <button
-                  className="reject-btn"
+                  className="block-ip-btn"
                   onClick={() => {
                     const reason = prompt('IP bloklama səbəbini daxil edin:');
                     if (reason) {
@@ -377,6 +378,71 @@ const AdminPanel = () => {
     </table>
   );
 
+  const renderDepositsTable = () => (
+    <table>
+      <thead>
+        <tr>
+          <th>İstifadəçi</th>
+          <th>Məbləğ</th>
+          <th>Ödəniş Üsulu</th>
+          <th>Tarix</th>
+          <th>Qəbz</th>
+          <th>Status</th>
+          <th>Əməliyyatlar</th>
+        </tr>
+      </thead>
+      <tbody>
+        {deposits.map(deposit => (
+          <tr key={deposit._id}>
+            <td>{deposit.user?.username}</td>
+            <td>{deposit.amount} AZN</td>
+            <td>{deposit.paymentMethod}</td>
+            <td>{new Date(deposit.createdAt).toLocaleString()}</td>
+            <td>
+              {deposit.receiptUrl && (
+                <button 
+                  className="view-receipt-btn"
+                  onClick={() => {
+                    const cloudinaryUrl = deposit.receiptUrl.includes('https://res.cloudinary.com/') 
+                      ? deposit.receiptUrl.substring(deposit.receiptUrl.indexOf('https://res.cloudinary.com/'))
+                      : deposit.receiptUrl;
+                    console.log('Opening image:', cloudinaryUrl);
+                    setSelectedImage(cloudinaryUrl);
+                  }}
+                >
+                  <FaCreditCard /> Göstər
+                </button>
+              )}
+            </td>
+            <td>
+              <span className={`status ${deposit.status.toLowerCase()}`}>
+                {getStatusText(deposit.status)}
+              </span>
+            </td>
+            <td>
+              {deposit.status === 'PENDING' && (
+                <>
+                  <button 
+                    className="approve-btn"
+                    onClick={() => handleAction('DEPOSIT', deposit._id, 'APPROVE')}
+                  >
+                    <FaCheckCircle /> Təsdiqlə
+                  </button>
+                  <button 
+                    className="reject-btn"
+                    onClick={() => handleAction('DEPOSIT', deposit._id, 'REJECT')}
+                  >
+                    <FaTimesCircle /> Rədd Et
+                  </button>
+                </>
+              )}
+            </td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+
   const tabs = [
     { id: 'USERS', label: 'İstifadəçilər' },
     { id: 'BLOCKED_IPS', label: 'Bloklanmış IP\'lər' },
@@ -424,56 +490,7 @@ const AdminPanel = () => {
       <div className="content">
         {activeTab === 'USERS' && renderUserTable()}
         {activeTab === 'BLOCKED_IPS' && renderBlockedIPsTable()}
-        {activeTab === 'DEPOSITS' && (
-          <table>
-            <thead>
-              <tr>
-                <th>İstifadəçi</th>
-                <th>Məbləğ</th>
-                <th>Ödəniş Üsulu</th>
-                <th>Tarix</th>
-                <th>Qəbz</th>
-                <th>Əməliyyatlar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deposits.map(deposit => (
-                <tr key={deposit._id}>
-                  <td>{deposit.user?.username}</td>
-                  <td>{deposit.amount} AZN</td>
-                  <td>{deposit.paymentMethod}</td>
-                  <td>{new Date(deposit.createdAt).toLocaleString()}</td>
-                  <td>
-                    {deposit.receipt && (
-                      <button className="view-receipt-btn" onClick={() => setSelectedImage(deposit.receipt)}>
-                        <FaCreditCard /> Göstər
-                      </button>
-                    )}
-                  </td>
-                  <td>
-                    {deposit.status === 'PENDING' && (
-                      <>
-                        <button 
-                          className="approve-btn"
-                          onClick={() => handleAction('DEPOSIT', deposit._id, 'APPROVE')}
-                        >
-                          <FaCheckCircle /> Təsdiqlə
-                        </button>
-                        <button 
-                          className="reject-btn"
-                          onClick={() => handleAction('DEPOSIT', deposit._id, 'REJECT')}
-                        >
-                          <FaTimesCircle /> Rədd Et
-                        </button>
-                      </>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
+        {activeTab === 'DEPOSITS' && renderDepositsTable()}
         {activeTab === 'WITHDRAWALS' && (
           <table>
             <thead>
@@ -632,22 +649,20 @@ const AdminPanel = () => {
       </div>
 
       {/* Image Modal */}
-      <Modal
-        open={!!selectedImage}
-        onClose={handleCloseImage}
-        aria-labelledby="receipt-modal"
-        aria-describedby="receipt-image"
-      >
-        <Box sx={modalStyle}>
-          {selectedImage && (
+      {selectedImage && (
+        <Modal
+          open={Boolean(selectedImage)}
+          onClose={handleCloseImage}
+        >
+          <Box sx={modalStyle}>
             <img 
               src={selectedImage} 
               alt="Receipt" 
-              style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+              style={{ maxWidth: '100%', maxHeight: '80vh' }} 
             />
-          )}
-        </Box>
-      </Modal>
+          </Box>
+        </Modal>
+      )}
     </div>
   );
 };
