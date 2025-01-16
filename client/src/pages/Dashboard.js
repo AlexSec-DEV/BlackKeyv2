@@ -97,6 +97,13 @@ const Dashboard = () => {
             buttonColor: getPackageButtonColor(setting.type),
             interestRate: setting.interestRate
           }));
+
+          // Kasaları istenen sıraya göre sırala
+          const packageOrder = ['SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'MASTER', 'ELITE'];
+          formattedSettings.sort((a, b) => {
+            return packageOrder.indexOf(a.name) - packageOrder.indexOf(b.name);
+          });
+
           setPackageSettings(formattedSettings);
         }
       } catch (error) {
