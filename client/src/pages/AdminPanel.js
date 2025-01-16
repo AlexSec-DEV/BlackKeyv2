@@ -15,13 +15,16 @@ import {
   Modal,
   Box,
   TextField,
-  IconButton
+  IconButton,
+  ButtonGroup
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
 import CancelIcon from '@mui/icons-material/Cancel';
 import EditIcon from '@mui/icons-material/Edit';
 import PaymentInfoManager from '../components/PaymentInfoManager';
+import BlockIcon from '@mui/icons-material/Block';
+import LockOpenIcon from '@mui/icons-material/LockOpen';
 import './AdminPanel.css';
 
 const modalStyle = {
@@ -57,6 +60,7 @@ const AdminPanel = () => {
     minAmount: '',
     maxAmount: ''
   });
+  const [blockedIPs, setBlockedIPs] = useState([]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -246,6 +250,150 @@ const AdminPanel = () => {
     }
   };
 
+  const handleBlockIP = async (ipAddress, reason) => {
+    try {
+      await api.post('/admin/block-ip', { ipAddress, reason });
+      alert('IP adresi başarıyla bloklandı');
+      loadUsers(); // Kullanıcı listesini yenile
+    } catch (error) {
+      console.error('IP bloklama hatası:', error);
+      alert('IP bloklanırken bir hata oluştu');
+    }
+  };
+
+  const handleUnblockIP = async (ipAddress) => {
+    try {
+      await api.delete(`/admin/unblock-ip/${ipAddress}`);
+      alert('IP bloğu başarıyla kaldırıldı');
+      loadUsers(); // Kullanıcı listesini yenile
+    } catch (error) {
+      console.error('IP bloğu kaldırma hatası:', error);
+      alert('IP bloğu kaldırılırken bir hata oluştu');
+    }
+  };
+
+  const renderUserTable = () => (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>ID</TableCell>
+            <TableCell>Kullanıcı Adı</TableCell>
+            <TableCell>Email</TableCell>
+            <TableCell>IP Adresi</TableCell>
+            <TableCell>Son Giriş IP</TableCell>
+            <TableCell>Son Giriş Tarihi</TableCell>
+            <TableCell>Bakiye</TableCell>
+            <TableCell>Durum</TableCell>
+            <TableCell>İşlemler</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {users.map((user) => (
+            <TableRow key={user._id}>
+              <TableCell>{user._id}</TableCell>
+              <TableCell>{user.username}</TableCell>
+              <TableCell>{user.email}</TableCell>
+              <TableCell>{user.ipAddress || 'N/A'}</TableCell>
+              <TableCell>{user.lastLoginIp || 'N/A'}</TableCell>
+              <TableCell>
+                {user.lastLoginDate ? new Date(user.lastLoginDate).toLocaleString() : 'N/A'}
+              </TableCell>
+              <TableCell>{user.balance}</TableCell>
+              <TableCell>
+                <Chip
+                  label={user.isBlocked ? 'Engelli' : 'Aktif'}
+                  color={user.isBlocked ? 'error' : 'success'}
+                />
+              </TableCell>
+              <TableCell>
+                <ButtonGroup variant="text">
+                  {!user.isAdmin && (
+                    <Button
+                      onClick={() => handleAction('user', user._id, user.isBlocked ? 'unblock' : 'block')}
+                      color={user.isBlocked ? 'success' : 'error'}
+                      startIcon={user.isBlocked ? <LockOpenIcon /> : <BlockIcon />}
+                    >
+                      {user.isBlocked ? 'Engeli Kaldır' : 'Engelle'}
+                    </Button>
+                  )}
+                  {user.ipAddress && (
+                    <Button
+                      onClick={() => {
+                        const reason = prompt('IP bloklama sebebini girin:');
+                        if (reason) {
+                          handleBlockIP(user.ipAddress, reason);
+                        }
+                      }}
+                      color="error"
+                      startIcon={<BlockIcon />}
+                    >
+                      IP Blokla
+                    </Button>
+                  )}
+                </ButtonGroup>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  const loadBlockedIPs = async () => {
+    try {
+      const response = await api.get('/admin/blocked-ips');
+      setBlockedIPs(response.data);
+    } catch (error) {
+      console.error('Bloklu IP\'leri yükleme hatası:', error);
+    }
+  };
+
+  const renderBlockedIPsTable = () => (
+    <TableContainer component={Paper}>
+      <Table>
+        <TableHead>
+          <TableRow>
+            <TableCell>IP Adresi</TableCell>
+            <TableCell>Blok Sebebi</TableCell>
+            <TableCell>Blok Tarihi</TableCell>
+            <TableCell>Blok Yapan Admin</TableCell>
+            <TableCell>İşlemler</TableCell>
+          </TableRow>
+        </TableHead>
+        <TableBody>
+          {blockedIPs.map((blockedIP) => (
+            <TableRow key={blockedIP._id}>
+              <TableCell>{blockedIP.ipAddress}</TableCell>
+              <TableCell>{blockedIP.reason || 'Sebep belirtilmemiş'}</TableCell>
+              <TableCell>
+                {new Date(blockedIP.blockedAt).toLocaleString()}
+              </TableCell>
+              <TableCell>{blockedIP.blockedBy?.username || 'N/A'}</TableCell>
+              <TableCell>
+                <Button
+                  onClick={() => handleUnblockIP(blockedIP.ipAddress)}
+                  color="success"
+                  startIcon={<LockOpenIcon />}
+                >
+                  Bloğu Kaldır
+                </Button>
+              </TableCell>
+            </TableRow>
+          ))}
+        </TableBody>
+      </Table>
+    </TableContainer>
+  );
+
+  const tabs = [
+    { id: 'USERS', label: 'Kullanıcılar' },
+    { id: 'BLOCKED_IPS', label: 'Bloklu IP\'ler' },
+    { id: 'DEPOSITS', label: 'Para Yatırma' },
+    { id: 'WITHDRAWALS', label: 'Para Çekme' },
+    { id: 'SETTINGS', label: 'Ayarlar' }
+  ];
+
   return (
     <div className="admin-panel">
       <h1>Admin Panel</h1>
@@ -271,90 +419,20 @@ const AdminPanel = () => {
       </div>
 
       <div className="tabs">
-        <button
-          className={activeTab === 'USERS' ? 'active' : ''}
-          onClick={() => setActiveTab('USERS')}
-        >
-          <FaUsers /> İstifadəçilər
-        </button>
-        <button
-          className={activeTab === 'DEPOSITS' ? 'active' : ''}
-          onClick={() => setActiveTab('DEPOSITS')}
-        >
-          <FaMoneyBillWave /> Balans Artırımı ({deposits.filter(d => d.status === 'PENDING').length})
-        </button>
-        <button
-          className={activeTab === 'WITHDRAWALS' ? 'active' : ''}
-          onClick={() => setActiveTab('WITHDRAWALS')}
-        >
-          <FaMoneyBillWave /> Pul Çəkmə ({withdrawals.filter(w => w.status === 'PENDING').length})
-        </button>
-        <button
-          className={activeTab === 'PAYMENT_INFO' ? 'active' : ''}
-          onClick={() => setActiveTab('PAYMENT_INFO')}
-        >
-          <FaCog /> Ödəniş Məlumatları
-        </button>
-        <button
-          className={activeTab === 'STATS' ? 'active' : ''}
-          onClick={() => setActiveTab('STATS')}
-        >
-          <FaChartBar /> Statistikalar
-        </button>
-        <button
-          className={activeTab === 'PACKAGE_SETTINGS' ? 'active' : ''}
-          onClick={() => setActiveTab('PACKAGE_SETTINGS')}
-        >
-          <EditIcon /> Kasa Ayarları
-        </button>
+        {tabs.map(tab => (
+          <button
+            key={tab.id}
+            className={activeTab === tab.id ? 'active' : ''}
+            onClick={() => setActiveTab(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
 
       <div className="content">
-        {activeTab === 'USERS' && (
-          <table>
-            <thead>
-              <tr>
-                <th>İstifadəçi Adı</th>
-                <th>Email</th>
-                <th>Balans</th>
-                <th>Səviyyə</th>
-                <th>Admin</th>
-                <th>Vəziyyət</th>
-                <th>Əməliyyatlar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {users.map(user => (
-                <tr key={user._id}>
-                  <td>{user.username}</td>
-                  <td>{user.email}</td>
-                  <td>{user.balance} AZN</td>
-                  <td>{user.level}</td>
-                  <td>{user.isAdmin ? 'Bəli' : 'Xeyr'}</td>
-                  <td>{user.isBlocked ? 'Bloklanıb' : 'Aktiv'}</td>
-                  <td>
-                    {user.isBlocked ? (
-                      <button 
-                        onClick={() => handleAction('USER', user._id, 'unblock')} 
-                        className="unblock-btn"
-                      >
-                        <FaCheckCircle /> Bloku Qaldır
-                      </button>
-                    ) : (
-                      <button 
-                        onClick={() => handleAction('USER', user._id, 'block')} 
-                        className="block-btn"
-                      >
-                        <FaTimesCircle /> Blokla
-                      </button>
-                    )}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        )}
-
+        {activeTab === 'USERS' && renderUserTable()}
+        {activeTab === 'BLOCKED_IPS' && renderBlockedIPsTable()}
         {activeTab === 'DEPOSITS' && (
           <table>
             <thead>
@@ -474,60 +552,7 @@ const AdminPanel = () => {
           </TableContainer>
         )}
 
-        {activeTab === 'PAYMENT_INFO' && (
-          <PaymentInfoManager onUpdate={fetchData} />
-        )}
-
-        {activeTab === 'STATS' && (
-          <div className="stats-form">
-            <h2>Görünən Statistika Yeniləməsi</h2>
-            <p className="info-text">Bu sahədəki dəyişikliklər yalnız Yan paneldə görünən statistikaları təsir edir, real məlumatları dəyişdirmir.</p>
-            
-            <form onSubmit={handleFakeStatsUpdate}>
-              <div className="form-group">
-                <label>Görünən Ümumi İstifadəçi:</label>
-                <input
-                  type="number"
-                  value={fakeStats.totalUsers}
-                  onChange={(e) => setFakeStats({ ...fakeStats, totalUsers: Number(e.target.value) })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Görünən Aktiv İstifadəçi:</label>
-                <input
-                  type="number"
-                  value={fakeStats.activeUsers}
-                  onChange={(e) => setFakeStats({ ...fakeStats, activeUsers: Number(e.target.value) })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Görünən Ümumi Sərmayə (manat):</label>
-                <input
-                  type="number"
-                  value={fakeStats.totalInvestment}
-                  onChange={(e) => setFakeStats({ ...fakeStats, totalInvestment: Number(e.target.value) })}
-                />
-              </div>
-
-              <div className="form-group">
-                <label>Görünən Ümumi Ödəniş (manat):</label>
-                <input
-                  type="number"
-                  value={fakeStats.totalPayout}
-                  onChange={(e) => setFakeStats({ ...fakeStats, totalPayout: Number(e.target.value) })}
-                />
-              </div>
-
-              <button type="submit" className="update-btn">
-                <FaChartBar /> Görünən Statistikaları Yenilə
-              </button>
-            </form>
-          </div>
-        )}
-
-        {activeTab === 'PACKAGE_SETTINGS' && (
+        {activeTab === 'SETTINGS' && (
           <div className="package-settings">
             <Typography variant="h6" gutterBottom>
               Kasa Ayarları
