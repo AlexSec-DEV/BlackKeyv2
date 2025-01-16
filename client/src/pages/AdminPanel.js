@@ -121,9 +121,9 @@ const AdminPanel = () => {
         endpoint = `/admin/withdrawals/${id}/${action.toLowerCase()}`;
       }
 
-      const response = await api.post(endpoint);
+      await api.post(endpoint);
       await fetchData();
-      alert(response.data?.message || 'Əməliyyat uğurla tamamlandı');
+      alert('Əməliyyat uğurla tamamlandı');
     } catch (error) {
       console.error('Əməliyyat xətası:', error);
       alert('Əməliyyat zamanı xəta baş verdi: ' + (error.response?.data?.message || error.message));
