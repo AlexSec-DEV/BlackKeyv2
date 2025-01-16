@@ -250,11 +250,21 @@ const AdminPanel = () => {
     }
   };
 
+  const loadUsers = async () => {
+    try {
+      const response = await api.get('/admin/users');
+      setUsers(response.data);
+    } catch (error) {
+      console.error('Kullanıcılar yüklenirken hata:', error);
+    }
+  };
+
   const handleBlockIP = async (ipAddress, reason) => {
     try {
       await api.post('/admin/block-ip', { ipAddress, reason });
       alert('IP adresi başarıyla bloklandı');
-      loadUsers(); // Kullanıcı listesini yenile
+      await loadUsers();
+      await loadBlockedIPs();
     } catch (error) {
       console.error('IP bloklama hatası:', error);
       alert('IP bloklanırken bir hata oluştu');
@@ -265,7 +275,8 @@ const AdminPanel = () => {
     try {
       await api.delete(`/admin/unblock-ip/${ipAddress}`);
       alert('IP bloğu başarıyla kaldırıldı');
-      loadUsers(); // Kullanıcı listesini yenile
+      await loadUsers();
+      await loadBlockedIPs();
     } catch (error) {
       console.error('IP bloğu kaldırma hatası:', error);
       alert('IP bloğu kaldırılırken bir hata oluştu');
@@ -434,58 +445,60 @@ const AdminPanel = () => {
         {activeTab === 'USERS' && renderUserTable()}
         {activeTab === 'BLOCKED_IPS' && renderBlockedIPsTable()}
         {activeTab === 'DEPOSITS' && (
-          <table>
-            <thead>
-              <tr>
-                <th>İstifadəçi</th>
-                <th>Məbləğ</th>
-                <th>Ödəniş Üsulu</th>
-                <th>Tarix</th>
-                <th>Qəbz</th>
-                <th>Əməliyyatlar</th>
-              </tr>
-            </thead>
-            <tbody>
-              {deposits.map(deposit => (
-                <tr key={deposit._id}>
-                  <td>{deposit.user?.username}</td>
-                  <td>{deposit.amount} AZN</td>
-                  <td>{deposit.paymentMethod}</td>
-                  <td>{formatDate(deposit.createdAt)}</td>
-                  <td>
-                    {deposit.receiptUrl && (
-                      <button 
-                        className="view-receipt-btn"
-                        onClick={() => {
-                          const cloudinaryUrl = deposit.receiptUrl.includes('https://res.cloudinary.com/') 
-                            ? deposit.receiptUrl.substring(deposit.receiptUrl.indexOf('https://res.cloudinary.com/'))
-                            : deposit.receiptUrl;
-                          console.log('Opening image:', cloudinaryUrl);
-                          setSelectedImage(cloudinaryUrl);
-                        }}
-                      >
-                        <FaCreditCard /> Göstər
-                      </button>
-                    )}
-                  </td>
-                  <td>
-                    {deposit.status === 'PENDING' && (
-                      <>
-                        <button onClick={() => handleAction('DEPOSIT', deposit._id, 'APPROVE')} className="approve-btn">
-                          <FaCheckCircle /> Təsdiqlə
-                        </button>
-                        <button onClick={() => handleAction('DEPOSIT', deposit._id, 'REJECT')} className="reject-btn">
-                          <FaTimesCircle /> Rədd Et
-                        </button>
-                      </>
-                    )}
-                    {deposit.status === 'APPROVED' && <span className="status approved">Təsdiqləndi</span>}
-                    {deposit.status === 'REJECTED' && <span className="status rejected">Rədd edildi</span>}
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>İstifadəçi</TableCell>
+                  <TableCell>Məbləğ</TableCell>
+                  <TableCell>Ödəniş Üsulu</TableCell>
+                  <TableCell>Tarix</TableCell>
+                  <TableCell>Qəbz</TableCell>
+                  <TableCell>Əməliyyatlar</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {deposits.map(deposit => (
+                  <TableRow key={deposit._id}>
+                    <TableCell>{deposit.user?.username}</TableCell>
+                    <TableCell>{deposit.amount} AZN</TableCell>
+                    <TableCell>{deposit.paymentMethod}</TableCell>
+                    <TableCell>{new Date(deposit.createdAt).toLocaleString()}</TableCell>
+                    <TableCell>
+                      {deposit.receipt && (
+                        <Button onClick={() => setSelectedImage(deposit.receipt)}>
+                          Qəbzi Göstər
+                        </Button>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {deposit.status === 'PENDING' && (
+                        <>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            size="small"
+                            onClick={() => handleAction('DEPOSIT', deposit._id, 'APPROVE')}
+                            sx={{ mr: 1 }}
+                          >
+                            Təsdiqlə
+                          </Button>
+                          <Button
+                            variant="contained"
+                            color="error"
+                            size="small"
+                            onClick={() => handleAction('DEPOSIT', deposit._id, 'REJECT')}
+                          >
+                            Rədd Et
+                          </Button>
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
         )}
 
         {activeTab === 'WITHDRAWALS' && (
