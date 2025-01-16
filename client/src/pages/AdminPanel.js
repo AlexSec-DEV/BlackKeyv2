@@ -473,48 +473,6 @@ const AdminPanel = () => {
         </div>
       </div>
 
-      <div className="stats-form">
-        <h2>İstatistik Ayarları</h2>
-        <p className="info-text">Bu bölmədə yan paneldə görünən istatistik dəyərlərini tənzimləyə bilərsiniz.</p>
-        <form onSubmit={handleFakeStatsUpdate}>
-          <div className="form-group">
-            <label>Ümumi İstifadəçi:</label>
-            <input
-              type="number"
-              value={fakeStats.totalUsers}
-              onChange={(e) => setFakeStats({ ...fakeStats, totalUsers: parseInt(e.target.value) })}
-            />
-          </div>
-          <div className="form-group">
-            <label>Aktiv İstifadəçi:</label>
-            <input
-              type="number"
-              value={fakeStats.activeUsers}
-              onChange={(e) => setFakeStats({ ...fakeStats, activeUsers: parseInt(e.target.value) })}
-            />
-          </div>
-          <div className="form-group">
-            <label>Ümumi Sərmayə:</label>
-            <input
-              type="number"
-              value={fakeStats.totalInvestment}
-              onChange={(e) => setFakeStats({ ...fakeStats, totalInvestment: parseInt(e.target.value) })}
-            />
-          </div>
-          <div className="form-group">
-            <label>Ümumi Ödəniş:</label>
-            <input
-              type="number"
-              value={fakeStats.totalPayout}
-              onChange={(e) => setFakeStats({ ...fakeStats, totalPayout: parseInt(e.target.value) })}
-            />
-          </div>
-          <button type="submit" className="update-btn">
-            <FaChartBar /> Yenilə
-          </button>
-        </form>
-      </div>
-
       <div className="tabs">
         {tabs.map(tab => (
           <button
@@ -588,8 +546,54 @@ const AdminPanel = () => {
 
         {activeTab === 'SETTINGS' && (
           <>
-            <div className="package-settings">
+            <div className="stats-settings">
               <Typography variant="h6" gutterBottom>
+                İstatistik Ayarları
+              </Typography>
+              <div className="stats-form">
+                <p className="info-text">Bu bölmədə yan paneldə görünən istatistik dəyərlərini tənzimləyə bilərsiniz. Bu dəyərlər sadəcə görüntü üçündür və real məlumatlarla əlaqəsi yoxdur.</p>
+                <form onSubmit={handleFakeStatsUpdate}>
+                  <div className="form-group">
+                    <label>Ümumi İstifadəçi:</label>
+                    <input
+                      type="number"
+                      value={fakeStats.totalUsers}
+                      onChange={(e) => setFakeStats({ ...fakeStats, totalUsers: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Aktiv İstifadəçi:</label>
+                    <input
+                      type="number"
+                      value={fakeStats.activeUsers}
+                      onChange={(e) => setFakeStats({ ...fakeStats, activeUsers: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Ümumi Sərmayə:</label>
+                    <input
+                      type="number"
+                      value={fakeStats.totalInvestment}
+                      onChange={(e) => setFakeStats({ ...fakeStats, totalInvestment: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Ümumi Ödəniş:</label>
+                    <input
+                      type="number"
+                      value={fakeStats.totalPayout}
+                      onChange={(e) => setFakeStats({ ...fakeStats, totalPayout: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <button type="submit" className="update-btn">
+                    <FaChartBar /> Yenilə
+                  </button>
+                </form>
+              </div>
+            </div>
+
+            <div className="package-settings">
+              <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
                 Kasa Ayarları
               </Typography>
               <TableContainer component={Paper}>
@@ -682,52 +686,6 @@ const AdminPanel = () => {
                   </TableBody>
                 </Table>
               </TableContainer>
-            </div>
-
-            <div className="stats-settings">
-              <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
-                Statistikalar
-              </Typography>
-              <div className="stats-form">
-                <p className="info-text">Bu bölmədə yan paneldə görünən istatistik dəyərlərini tənzimləyə bilərsiniz.</p>
-                <form onSubmit={handleFakeStatsUpdate}>
-                  <div className="form-group">
-                    <label>Ümumi İstifadəçi:</label>
-                    <input
-                      type="number"
-                      value={fakeStats.totalUsers}
-                      onChange={(e) => setFakeStats({ ...fakeStats, totalUsers: parseInt(e.target.value) })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Aktiv İstifadəçi:</label>
-                    <input
-                      type="number"
-                      value={fakeStats.activeUsers}
-                      onChange={(e) => setFakeStats({ ...fakeStats, activeUsers: parseInt(e.target.value) })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Ümumi Sərmayə:</label>
-                    <input
-                      type="number"
-                      value={fakeStats.totalInvestment}
-                      onChange={(e) => setFakeStats({ ...fakeStats, totalInvestment: parseInt(e.target.value) })}
-                    />
-                  </div>
-                  <div className="form-group">
-                    <label>Ümumi Ödəniş:</label>
-                    <input
-                      type="number"
-                      value={fakeStats.totalPayout}
-                      onChange={(e) => setFakeStats({ ...fakeStats, totalPayout: parseInt(e.target.value) })}
-                    />
-                  </div>
-                  <button type="submit" className="update-btn">
-                    <FaChartBar /> Yenilə
-                  </button>
-                </form>
-              </div>
             </div>
 
             <div className="payment-settings">
