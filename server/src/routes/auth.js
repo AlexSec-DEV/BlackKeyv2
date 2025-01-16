@@ -10,7 +10,15 @@ const cloudinary = require('../config/cloudinary');
 // IP kontrolü middleware
 const checkBlockedIP = async (req, res, next) => {
   try {
-    const ip = req.ip || req.connection.remoteAddress;
+    // Vercel için IP adresi alma
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
+               req.headers['x-real-ip'] || 
+               req.connection.remoteAddress || 
+               req.socket.remoteAddress || 
+               req.ip;
+               
+    console.log('Client IP:', ip); // Debug için
+
     const blockedIP = await BlockedIP.findOne({ ipAddress: ip });
     
     if (blockedIP) {
@@ -171,7 +179,15 @@ router.put('/profile', auth, async (req, res) => {
 router.post('/register', checkBlockedIP, async (req, res) => {
   try {
     const { username, email, password } = req.body;
-    const ip = req.ip || req.connection.remoteAddress;
+    
+    // Vercel için IP adresi alma
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
+               req.headers['x-real-ip'] || 
+               req.connection.remoteAddress || 
+               req.socket.remoteAddress || 
+               req.ip;
+
+    console.log('Register IP:', ip); // Debug için
 
     const existingUser = await User.findOne({
       $or: [{ email }, { username }]
@@ -242,7 +258,15 @@ router.post('/register', checkBlockedIP, async (req, res) => {
 router.post('/login', checkBlockedIP, async (req, res) => {
   try {
     const { email, password } = req.body;
-    const ip = req.ip || req.connection.remoteAddress;
+    
+    // Vercel için IP adresi alma
+    const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
+               req.headers['x-real-ip'] || 
+               req.connection.remoteAddress || 
+               req.socket.remoteAddress || 
+               req.ip;
+
+    console.log('Login IP:', ip); // Debug için
 
     // Kullanıcıyı bul
     const user = await User.findOne({ email });
