@@ -9,17 +9,17 @@ const auth = async (req, res, next) => {
       return res.status(401).json({ message: 'Giriş etmək lazımdır' });
     }
 
-    const decoded = jwt.verify(token, process.env.JWT_SECRET);
-    const user = await User.findOne({ _id: decoded._id });
+    const decoded = jwt.verify(token, process.env.JWT_SECRET || 'blackkey2024secret');
+    const user = await User.findById(decoded.id);
 
     if (!user) {
       throw new Error();
     }
 
-    req.token = token;
     req.user = user;
     next();
   } catch (error) {
+    console.error('Auth middleware error:', error);
     res.status(401).json({ message: 'Zəhmət olmasa yenidən giriş edin' });
   }
 };

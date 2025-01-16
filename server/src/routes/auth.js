@@ -219,7 +219,7 @@ router.post('/register', async (req, res) => {
 });
 
 // Giriş yap
-router.post('/login', checkBlockedIP, async (req, res) => {
+router.post('/login', async (req, res) => {
   try {
     const { email, password } = req.body;
     const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
@@ -265,10 +265,7 @@ router.post('/login', checkBlockedIP, async (req, res) => {
         level: user.level,
         xp: user.xp,
         nextLevelXp: user.nextLevelXp,
-        profileImage: user.profileImage,
-        ipAddress: user.ipAddress,
-        lastLoginIp: user.lastLoginIp,
-        lastLoginDate: user.lastLoginDate
+        profileImage: user.profileImage
       }
     });
   } catch (error) {
