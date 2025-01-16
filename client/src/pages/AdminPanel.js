@@ -97,14 +97,20 @@ const AdminPanel = () => {
 
   const fetchRealStats = useCallback(async () => {
     try {
-      const response = await api.get('/admin/stats');
-      console.log('Backend stats response:', response.data);
-      if (response.data) {
+      const [statsResponse, usersResponse] = await Promise.all([
+        api.get('/admin/stats'),
+        api.get('/admin/users')
+      ]);
+      
+      // Calculate total balance from all users
+      const totalBalance = usersResponse.data.reduce((sum, user) => sum + (parseFloat(user.balance) || 0), 0);
+      
+      if (statsResponse.data) {
         setRealStats({
-          totalUsers: response.data.totalUsers || 0,
-          totalInvestments: response.data.totalInvestments || 0,
-          activeInvestments: response.data.totalInvestmentAmount || 0,
-          totalAmount: response.data.totalBalance || 0
+          totalUsers: statsResponse.data.totalUsers || 0,
+          totalInvestments: statsResponse.data.totalInvestments || 0,
+          activeInvestments: statsResponse.data.totalInvestmentAmount || 0,
+          totalAmount: totalBalance
         });
       }
     } catch (err) {
