@@ -457,21 +457,62 @@ const AdminPanel = () => {
       <div className="stats-container">
         <div className="stat-box">
           <h3>Ümumi İstifadəçi</h3>
-          <p>{users.length}</p>
+          <p>{fakeStats.totalUsers}</p>
         </div>
         <div className="stat-box">
           <h3>Ümumi Sərmayə</h3>
-          <p>{users.reduce((total, user) => total + (user.balance > 0 ? 1 : 0), 0)}</p>
+          <p>{fakeStats.totalInvestment}</p>
         </div>
         <div className="stat-box">
           <h3>Aktiv Sərmayə</h3>
-          <p>{users.reduce((total, user) => total + (user.balance > 0 ? 1 : 0), 0)}</p>
+          <p>{fakeStats.activeUsers}</p>
         </div>
         <div className="stat-box">
           <h3>Ümumi Sərmayə Məbləği</h3>
-          <p>{users.reduce((total, user) => total + (Number(user.balance) || 0), 0)
-            .toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} AZN</p>
+          <p>{fakeStats.totalPayout} AZN</p>
         </div>
+      </div>
+
+      <div className="stats-form">
+        <h2>İstatistik Ayarları</h2>
+        <p className="info-text">Bu bölmədə yan paneldə görünən istatistik dəyərlərini tənzimləyə bilərsiniz.</p>
+        <form onSubmit={handleFakeStatsUpdate}>
+          <div className="form-group">
+            <label>Ümumi İstifadəçi:</label>
+            <input
+              type="number"
+              value={fakeStats.totalUsers}
+              onChange={(e) => setFakeStats({ ...fakeStats, totalUsers: parseInt(e.target.value) })}
+            />
+          </div>
+          <div className="form-group">
+            <label>Aktiv İstifadəçi:</label>
+            <input
+              type="number"
+              value={fakeStats.activeUsers}
+              onChange={(e) => setFakeStats({ ...fakeStats, activeUsers: parseInt(e.target.value) })}
+            />
+          </div>
+          <div className="form-group">
+            <label>Ümumi Sərmayə:</label>
+            <input
+              type="number"
+              value={fakeStats.totalInvestment}
+              onChange={(e) => setFakeStats({ ...fakeStats, totalInvestment: parseInt(e.target.value) })}
+            />
+          </div>
+          <div className="form-group">
+            <label>Ümumi Ödəniş:</label>
+            <input
+              type="number"
+              value={fakeStats.totalPayout}
+              onChange={(e) => setFakeStats({ ...fakeStats, totalPayout: parseInt(e.target.value) })}
+            />
+          </div>
+          <button type="submit" className="update-btn">
+            <FaChartBar /> Yenilə
+          </button>
+        </form>
       </div>
 
       <div className="tabs">
@@ -643,6 +684,52 @@ const AdminPanel = () => {
               </TableContainer>
             </div>
 
+            <div className="stats-settings">
+              <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+                Statistikalar
+              </Typography>
+              <div className="stats-form">
+                <p className="info-text">Bu bölmədə yan paneldə görünən istatistik dəyərlərini tənzimləyə bilərsiniz.</p>
+                <form onSubmit={handleFakeStatsUpdate}>
+                  <div className="form-group">
+                    <label>Ümumi İstifadəçi:</label>
+                    <input
+                      type="number"
+                      value={fakeStats.totalUsers}
+                      onChange={(e) => setFakeStats({ ...fakeStats, totalUsers: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Aktiv İstifadəçi:</label>
+                    <input
+                      type="number"
+                      value={fakeStats.activeUsers}
+                      onChange={(e) => setFakeStats({ ...fakeStats, activeUsers: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Ümumi Sərmayə:</label>
+                    <input
+                      type="number"
+                      value={fakeStats.totalInvestment}
+                      onChange={(e) => setFakeStats({ ...fakeStats, totalInvestment: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <div className="form-group">
+                    <label>Ümumi Ödəniş:</label>
+                    <input
+                      type="number"
+                      value={fakeStats.totalPayout}
+                      onChange={(e) => setFakeStats({ ...fakeStats, totalPayout: parseInt(e.target.value) })}
+                    />
+                  </div>
+                  <button type="submit" className="update-btn">
+                    <FaChartBar /> Yenilə
+                  </button>
+                </form>
+              </div>
+            </div>
+
             <div className="payment-settings">
               <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
                 Ödəniş Məlumatları
@@ -653,7 +740,6 @@ const AdminPanel = () => {
         )}
       </div>
 
-      {/* Image Modal */}
       {selectedImage && (
         <Modal
           open={Boolean(selectedImage)}
