@@ -236,6 +236,9 @@ const Dashboard = () => {
                 <Grid container spacing={{ xs: 2, md: 3 }} sx={{ mb: { xs: 4, md: 6 } }}>
                   {investments.map((investment) => {
                     const pkg = packageSettings.find(p => p.name === investment.type);
+                    const displayName = `${investment.type.charAt(0)}${investment.type.slice(1).toLowerCase()} Kasa`;
+                    const color = getPackageColor(investment.type);
+                    
                     const now = new Date();
                     const startDate = new Date(investment.startDate);
                     const endDate = new Date(investment.endDate);
@@ -257,7 +260,7 @@ const Dashboard = () => {
                       <Grid item xs={12} sm={6} md={4} key={investment._id}>
                         <Card
                           sx={{
-                            bgcolor: pkg?.color || '#1e1e1e',
+                            bgcolor: color,
                             borderRadius: 2,
                             position: 'relative',
                             overflow: 'hidden',
@@ -282,7 +285,7 @@ const Dashboard = () => {
                           <CardContent sx={{ p: 2, height: '100%', position: 'relative' }}>
                             <Box sx={{ mb: 3, position: 'relative', zIndex: 2 }}>
                               <Typography variant="h5" sx={{ color: '#fff', fontWeight: 'bold' }}>
-                                {pkg?.displayName}
+                                {displayName}
                               </Typography>
                               <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
                                 Sərmayə: {investment.amount} AZN
