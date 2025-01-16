@@ -26,6 +26,7 @@ import PaymentInfoManager from '../components/PaymentInfoManager';
 import BlockIcon from '@mui/icons-material/Block';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import './AdminPanel.css';
+import { useNavigate } from 'react-router-dom';
 
 const modalStyle = {
   position: 'absolute',
@@ -41,7 +42,8 @@ const modalStyle = {
 };
 
 const AdminPanel = () => {
-  const { api } = useAuth();
+  const { api, user, isAuthenticated } = useAuth();
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('USERS');
   const [users, setUsers] = useState([]);
   const [deposits, setDeposits] = useState([]);
@@ -67,6 +69,13 @@ const AdminPanel = () => {
     maxAmount: ''
   });
   const [blockedIPs, setBlockedIPs] = useState([]);
+
+  useEffect(() => {
+    if (!isAuthenticated || !user?.isAdmin) {
+      navigate('/login');
+      return;
+    }
+  }, [isAuthenticated, user, navigate]);
 
   const fetchData = useCallback(async () => {
     try {
