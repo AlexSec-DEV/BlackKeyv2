@@ -9,13 +9,17 @@ const investmentSchema = new mongoose.Schema({
   type: {
     type: String,
     required: true,
-    enum: ['SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'MASTER', 'LEGENDARY']
+    enum: ['SILVER', 'GOLD', 'PLATINUM', 'DIAMOND', 'MASTER', 'ELITE']
   },
   amount: {
     type: Number,
     required: true
   },
   dailyReturn: {
+    type: Number,
+    required: true
+  },
+  interestRate: {
     type: Number,
     required: true
   },

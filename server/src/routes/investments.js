@@ -103,16 +103,16 @@ router.post('/', auth, async (req, res) => {
       user: user._id,
       type,
       amount,
+      interestRate: packageSetting.interestRate,
       dailyReturn: (amount * packageSetting.interestRate) / 100 / 30,
       startDate: new Date(),
-      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 günlük sabit süre
+      endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
       status: 'active'
     });
 
     user.balance -= amount;
-    user.xp += 18; // Sabit XP değeri
+    user.xp += 18;
 
-    // Level atlama kontrolü
     if (user.xp >= user.nextLevelXp) {
       user.level += 1;
       user.nextLevelXp = user.nextLevelXp * 2;

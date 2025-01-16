@@ -277,7 +277,7 @@ const Dashboard = () => {
                               zIndex: 2
                             }}
                           >
-                            {pkg?.percentage}
+                            {investment.interestRate}%
                           </Box>
                           <CardContent sx={{ p: 2, height: '100%', position: 'relative' }}>
                             <Box sx={{ mb: 3, position: 'relative', zIndex: 2 }}>
