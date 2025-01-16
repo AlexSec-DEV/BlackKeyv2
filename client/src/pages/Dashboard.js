@@ -146,8 +146,11 @@ const Dashboard = () => {
     if (selectedPackage && investmentAmount) {
       const amount = parseFloat(investmentAmount);
       if (!isNaN(amount)) {
-        // Günlük kazanç = Yatırım × 0.01 (1%)
-        const dailyReturn = amount * 0.01;
+        // Kasanın yüzde değerini al (örn: "10%" -> 0.10)
+        const percentage = parseFloat(selectedPackage.percentage.replace('%', '')) / 100;
+        
+        // Günlük kazanç = (Yatırım × Yüzde) ÷ 30
+        const dailyReturn = (amount * percentage) / 30;
         
         // Aylık kazanç = Günlük kazanç × 30
         const monthlyReturn = dailyReturn * 30;
