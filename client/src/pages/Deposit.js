@@ -14,6 +14,8 @@ const Deposit = () => {
   const [success, setSuccess] = useState(false);
 
   const fetchPaymentInfo = useCallback(async () => {
+    if (loading) return;
+    
     try {
       setLoading(true);
       const response = await api.get('/payment/info');
@@ -25,19 +27,24 @@ const Deposit = () => {
     } finally {
       setLoading(false);
     }
-  }, [api]);
+  }, [api, loading]);
 
   useEffect(() => {
     fetchPaymentInfo();
-  }, [fetchPaymentInfo]);
+  }, [fetchPaymentInfo, paymentMethod]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);
     
-    if (!amount || !selectedFile) {
-      setError('Zəhmət olmasa bütün sahələri doldurun və qəbz yükləyin');
+    if (!amount || amount <= 0) {
+      setError('Zəhmət olmasa düzgün məbləğ daxil edin');
+      return;
+    }
+
+    if (!selectedFile) {
+      setError('Zəhmət olmasa ödəniş qəbzini yükləyin');
       return;
     }
 
@@ -48,21 +55,26 @@ const Deposit = () => {
 
     try {
       setLoading(true);
-      await api.post('/transactions/deposit', formData, {
+      const response = await api.post('/transactions/deposit', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-      setSuccess(true);
-      setAmount('');
-      setSelectedFile(null);
-      // Dosya input'unu sıfırla
-      const fileInput = document.querySelector('input[type="file"]');
-      if (fileInput) {
-        fileInput.value = '';
+
+      if (response.data) {
+        setSuccess(true);
+        setAmount('');
+        setSelectedFile(null);
+        // Dosya input'unu sıfırla
+        const fileInput = document.querySelector('input[type="file"]');
+        if (fileInput) {
+          fileInput.value = '';
+        }
+        alert('Balans artırma tələbiniz qəbul edildi. Adminlər tərəfindən yoxlanıldıqdan sonra balansınız artırılacaq.');
       }
     } catch (err) {
-      setError('Balans artırma əməliyyatı uğursuz oldu: ' + err.response?.data?.message);
+      console.error('Deposit error:', err);
+      setError(err.response?.data?.message || 'Balans artırma əməliyyatı uğursuz oldu');
     } finally {
       setLoading(false);
     }
@@ -72,6 +84,10 @@ const Deposit = () => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
+  };
+
+  const handlePaymentMethodChange = (newMethod) => {
+    setPaymentMethod(newMethod);
   };
 
   const renderPaymentDetails = () => {
@@ -158,7 +174,7 @@ const Deposit = () => {
               type="radio"
               value="CREDIT_CARD"
               checked={paymentMethod === 'CREDIT_CARD'}
-              onChange={(e) => setPaymentMethod(e.target.value)}
+              onChange={(e) => handlePaymentMethodChange(e.target.value)}
             />
             Kredit Kartı
           </label>
@@ -167,7 +183,7 @@ const Deposit = () => {
               type="radio"
               value="M10"
               checked={paymentMethod === 'M10'}
-              onChange={(e) => setPaymentMethod(e.target.value)}
+              onChange={(e) => handlePaymentMethodChange(e.target.value)}
             />
             M10
           </label>
@@ -176,7 +192,7 @@ const Deposit = () => {
               type="radio"
               value="CRYPTO"
               checked={paymentMethod === 'CRYPTO'}
-              onChange={(e) => setPaymentMethod(e.target.value)}
+              onChange={(e) => handlePaymentMethodChange(e.target.value)}
             />
             Kripto
           </label>
