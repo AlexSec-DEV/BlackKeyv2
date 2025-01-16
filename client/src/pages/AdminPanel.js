@@ -49,9 +49,9 @@ const AdminPanel = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [realStats, setRealStats] = useState({
     totalUsers: 0,
-    activeUsers: 0,
-    totalInvestment: 0,
-    totalPayout: 0
+    totalInvestments: 0,
+    activeInvestments: 0,
+    totalAmount: 0
   });
   const [fakeStats, setFakeStats] = useState({
     totalUsers: 5698,
@@ -99,7 +99,12 @@ const AdminPanel = () => {
     try {
       const response = await api.get('/admin/stats');
       if (response.data) {
-        setRealStats(response.data);
+        setRealStats({
+          totalUsers: response.data.totalUsers || 0,
+          totalInvestments: response.data.totalInvestments || 0,
+          activeInvestments: response.data.activeInvestments || 0,
+          totalAmount: response.data.totalAmount || 0
+        });
       }
     } catch (err) {
       console.error('Real statistikalar yüklənərkən xəta:', err);
@@ -478,19 +483,19 @@ const AdminPanel = () => {
       <div className="stats-container">
         <div className="stat-box">
           <h3>Ümumi İstifadəçi</h3>
-          <p>{realStats.totalUsers}</p>
+          <p>{realStats.totalUsers || 0}</p>
         </div>
         <div className="stat-box">
           <h3>Ümumi Sərmayə</h3>
-          <p>{realStats.totalInvestment}</p>
+          <p>{realStats.totalInvestments || 0}</p>
         </div>
         <div className="stat-box">
           <h3>Aktiv Sərmayə</h3>
-          <p>{realStats.activeUsers}</p>
+          <p>{realStats.activeInvestments || 0}</p>
         </div>
         <div className="stat-box">
           <h3>Ümumi Sərmayə Məbləği</h3>
-          <p>{realStats.totalPayout} AZN</p>
+          <p>{realStats.totalAmount ? `${realStats.totalAmount} AZN` : '0 AZN'}</p>
         </div>
       </div>
 
@@ -569,7 +574,7 @@ const AdminPanel = () => {
           <>
             <div className="stats-settings">
               <Typography variant="h6" gutterBottom>
-                İstatistik Ayarları
+                İstatistik Ayarları (Yan Panel)
               </Typography>
               <div className="stats-form">
                 <p className="info-text">Bu bölmədə yan paneldə görünən istatistik dəyərlərini tənzimləyə bilərsiniz. Bu dəyərlər sadəcə görüntü üçündür və real məlumatlarla əlaqəsi yoxdur.</p>
