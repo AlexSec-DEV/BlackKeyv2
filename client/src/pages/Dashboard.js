@@ -98,6 +98,7 @@ const Dashboard = () => {
     monthly: 0,
     total: 0
   });
+  const [packageSettings, setPackageSettings] = useState([]);
 
   const loadStats = useCallback(async () => {
     try {
@@ -141,33 +142,49 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [loadInvestments]);
 
+  // Kasa ayarlarını yükle
+  useEffect(() => {
+    const loadPackageSettings = async () => {
+      try {
+        const response = await api.get('/admin/package-settings');
+        if (response.data && Array.isArray(response.data)) {
+          setPackageSettings(response.data);
+        }
+      } catch (error) {
+        console.error('Kasa ayarları yüklenirken hata:', error);
+      }
+    };
+    loadPackageSettings();
+  }, [api]);
+
   // Yatırım miktarı değiştiğinde kazanç hesaplama
   useEffect(() => {
     if (selectedPackage && investmentAmount) {
       const amount = parseFloat(investmentAmount);
       if (!isNaN(amount)) {
-        // Kasanın yüzde değerini al (örn: "10%" -> 0.10)
-        const percentage = parseFloat(selectedPackage.percentage.replace('%', '')) / 100;
-        
-        // Günlük kazanç = (Yatırım × Yüzde) ÷ 30
-        const dailyReturn = (amount * percentage) / 30;
-        
-        // Aylık kazanç = Günlük kazanç × 30
-        const monthlyReturn = dailyReturn * 30;
+        // Seçili kasanın ayarlarını bul
+        const settings = packageSettings.find(s => s.type === selectedPackage.name);
+        if (settings) {
+          // Günlük kazanç = (Yatırım × Faiz Oranı) ÷ 30
+          const dailyReturn = (amount * settings.interestRate / 100) / 30;
+          
+          // Aylık kazanç = Günlük kazanç × 30
+          const monthlyReturn = dailyReturn * 30;
 
-        // Toplam kazanç = Aylık kazanç + Yatırım sermayesi
-        const totalReturn = monthlyReturn + amount;
+          // Toplam kazanç = Aylık kazanç + Yatırım sermayesi
+          const totalReturn = monthlyReturn + amount;
 
-        setCalculatedReturns({
-          daily: dailyReturn.toFixed(2),
-          monthly: monthlyReturn.toFixed(2),
-          total: totalReturn.toFixed(2)
-        });
+          setCalculatedReturns({
+            daily: dailyReturn.toFixed(2),
+            monthly: monthlyReturn.toFixed(2),
+            total: totalReturn.toFixed(2)
+          });
+        }
       }
     } else {
       setCalculatedReturns({ daily: 0, monthly: 0, total: 0 });
     }
-  }, [selectedPackage, investmentAmount]);
+  }, [selectedPackage, investmentAmount, packageSettings]);
 
   const handleInvestmentSubmit = async () => {
     try {

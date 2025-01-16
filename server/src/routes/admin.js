@@ -7,6 +7,7 @@ const Investment = mongoose.model('Investment');
 const Transaction = mongoose.model('Transaction');
 const PaymentInfo = mongoose.model('PaymentInfo');
 const FakeStats = mongoose.model('FakeStats');
+const PackageSettings = require('../models/PackageSettings');
 
 console.log('Admin routes being initialized...');
 
@@ -258,6 +259,41 @@ router.post('/users/:userId/block', auth, isAdmin, async (req, res) => {
   } catch (error) {
     console.error('User block/unblock error:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// Tüm kasa ayarlarını getir
+router.get('/package-settings', auth, isAdmin, async (req, res) => {
+  try {
+    const settings = await PackageSettings.find().sort({ type: 1 });
+    res.json(settings);
+  } catch (error) {
+    console.error('Kasa ayarları getirilirken hata:', error);
+    res.status(500).json({ message: 'Kasa ayarları getirilirken bir hata oluştu' });
+  }
+});
+
+// Kasa ayarlarını güncelle
+router.put('/package-settings/:type', auth, isAdmin, async (req, res) => {
+  try {
+    const { interestRate, minAmount, maxAmount } = req.body;
+    const type = req.params.type.toUpperCase();
+
+    let settings = await PackageSettings.findOne({ type });
+    
+    if (!settings) {
+      settings = new PackageSettings({ type });
+    }
+
+    settings.interestRate = interestRate;
+    settings.minAmount = minAmount;
+    settings.maxAmount = maxAmount;
+
+    await settings.save();
+    res.json(settings);
+  } catch (error) {
+    console.error('Kasa ayarları güncellenirken hata:', error);
+    res.status(500).json({ message: 'Kasa ayarları güncellenirken bir hata oluştu' });
   }
 });
 

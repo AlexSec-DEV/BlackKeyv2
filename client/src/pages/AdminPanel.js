@@ -13,11 +13,14 @@ import {
   Chip, 
   Typography,
   Modal,
-  Box
+  Box,
+  TextField,
+  IconButton
 } from '@mui/material';
 import CheckCircleIcon from '@mui/icons-material/CheckCircle';
 import PendingIcon from '@mui/icons-material/Pending';
 import CancelIcon from '@mui/icons-material/Cancel';
+import EditIcon from '@mui/icons-material/Edit';
 import PaymentInfoManager from '../components/PaymentInfoManager';
 import './AdminPanel.css';
 
@@ -46,6 +49,13 @@ const AdminPanel = () => {
     activeUsers: 1756,
     totalInvestment: 96854,
     totalPayout: 25356
+  });
+  const [packageSettings, setPackageSettings] = useState([]);
+  const [editingPackage, setEditingPackage] = useState(null);
+  const [editForm, setEditForm] = useState({
+    interestRate: '',
+    minAmount: '',
+    maxAmount: ''
   });
 
   const fetchData = useCallback(async () => {
@@ -208,6 +218,34 @@ const AdminPanel = () => {
     setSelectedImage(null);
   };
 
+  useEffect(() => {
+    const loadPackageSettings = async () => {
+      try {
+        const response = await api.get('/admin/package-settings');
+        setPackageSettings(response.data);
+      } catch (error) {
+        console.error('Kasa ayarları yüklenirken hata:', error);
+      }
+    };
+    loadPackageSettings();
+  }, [api]);
+
+  const handleUpdatePackage = async (type) => {
+    try {
+      await api.put(`/admin/package-settings/${type}`, editForm);
+      const response = await api.get('/admin/package-settings');
+      setPackageSettings(response.data);
+      setEditingPackage(null);
+      setEditForm({
+        interestRate: '',
+        minAmount: '',
+        maxAmount: ''
+      });
+    } catch (error) {
+      console.error('Kasa ayarları güncellenirken hata:', error);
+    }
+  };
+
   return (
     <div className="admin-panel">
       <h1>Admin Panel</h1>
@@ -262,6 +300,12 @@ const AdminPanel = () => {
           onClick={() => setActiveTab('STATS')}
         >
           <FaChartBar /> Statistikalar
+        </button>
+        <button
+          className={activeTab === 'PACKAGE_SETTINGS' ? 'active' : ''}
+          onClick={() => setActiveTab('PACKAGE_SETTINGS')}
+        >
+          <EditIcon /> Kasa Ayarları
         </button>
       </div>
 
@@ -480,6 +524,107 @@ const AdminPanel = () => {
                 <FaChartBar /> Görünən Statistikaları Yenilə
               </button>
             </form>
+          </div>
+        )}
+
+        {activeTab === 'PACKAGE_SETTINGS' && (
+          <div className="package-settings">
+            <Typography variant="h6" gutterBottom>
+              Kasa Ayarları
+            </Typography>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Kasa Tipi</TableCell>
+                    <TableCell>Faiz Oranı (%)</TableCell>
+                    <TableCell>Min. Miktar</TableCell>
+                    <TableCell>Max. Miktar</TableCell>
+                    <TableCell>İşlemler</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {packageSettings.map((pkg) => (
+                    <TableRow key={pkg.type}>
+                      <TableCell>{pkg.type}</TableCell>
+                      <TableCell>
+                        {editingPackage === pkg.type ? (
+                          <TextField
+                            type="number"
+                            value={editForm.interestRate}
+                            onChange={(e) => setEditForm({ ...editForm, interestRate: e.target.value })}
+                            size="small"
+                          />
+                        ) : (
+                          `${pkg.interestRate}%`
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingPackage === pkg.type ? (
+                          <TextField
+                            type="number"
+                            value={editForm.minAmount}
+                            onChange={(e) => setEditForm({ ...editForm, minAmount: e.target.value })}
+                            size="small"
+                          />
+                        ) : (
+                          pkg.minAmount
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingPackage === pkg.type ? (
+                          <TextField
+                            type="number"
+                            value={editForm.maxAmount}
+                            onChange={(e) => setEditForm({ ...editForm, maxAmount: e.target.value })}
+                            size="small"
+                          />
+                        ) : (
+                          pkg.maxAmount
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingPackage === pkg.type ? (
+                          <>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              size="small"
+                              onClick={() => handleUpdatePackage(pkg.type)}
+                            >
+                              Kaydet
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="secondary"
+                              size="small"
+                              onClick={() => setEditingPackage(null)}
+                              sx={{ ml: 1 }}
+                            >
+                              İptal
+                            </Button>
+                          </>
+                        ) : (
+                          <IconButton
+                            color="primary"
+                            onClick={() => {
+                              setEditingPackage(pkg.type);
+                              setEditForm({
+                                interestRate: pkg.interestRate,
+                                minAmount: pkg.minAmount,
+                                maxAmount: pkg.maxAmount
+                              });
+                            }}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
           </div>
         )}
       </div>
