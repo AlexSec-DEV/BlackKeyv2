@@ -394,6 +394,7 @@ const AdminPanel = () => {
           <th>İstifadəçi</th>
           <th>Məbləğ</th>
           <th>Tarix</th>
+          <th>Qəbz</th>
           <th>Status</th>
           <th>Əməliyyatlar</th>
         </tr>
@@ -404,6 +405,21 @@ const AdminPanel = () => {
             <td>{deposit.user?.username || 'N/A'}</td>
             <td>{deposit.amount}</td>
             <td>{formatDate(deposit.createdAt)}</td>
+            <td>
+              {deposit.receiptUrl && (
+                <button 
+                  className="view-receipt-btn"
+                  onClick={() => {
+                    const cloudinaryUrl = deposit.receiptUrl.includes('https://res.cloudinary.com/') 
+                      ? deposit.receiptUrl
+                      : `https://res.cloudinary.com/your-cloud-name/image/upload/${deposit.receiptUrl}`;
+                    setSelectedImage(cloudinaryUrl);
+                  }}
+                >
+                  Göstər
+                </button>
+              )}
+            </td>
             <td>{getStatusText(deposit.status)}</td>
             <td>
               {deposit.status === 'PENDING' && (
