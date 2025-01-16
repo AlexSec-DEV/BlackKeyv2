@@ -47,6 +47,12 @@ const AdminPanel = () => {
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
   const [selectedImage, setSelectedImage] = useState(null);
+  const [realStats, setRealStats] = useState({
+    totalUsers: 0,
+    activeUsers: 0,
+    totalInvestment: 0,
+    totalPayout: 0
+  });
   const [fakeStats, setFakeStats] = useState({
     totalUsers: 5698,
     activeUsers: 1756,
@@ -89,12 +95,27 @@ const AdminPanel = () => {
     }
   }, [api]);
 
+  const fetchRealStats = useCallback(async () => {
+    try {
+      const response = await api.get('/admin/stats');
+      if (response.data) {
+        setRealStats(response.data);
+      }
+    } catch (err) {
+      console.error('Real statistikalar yüklənərkən xəta:', err);
+    }
+  }, [api]);
+
   useEffect(() => {
     fetchData();
     loadFakeStats();
-    const interval = setInterval(fetchData, 30000);
+    fetchRealStats();
+    const interval = setInterval(() => {
+      fetchData();
+      fetchRealStats();
+    }, 30000);
     return () => clearInterval(interval);
-  }, [fetchData, loadFakeStats]);
+  }, [fetchData, loadFakeStats, fetchRealStats]);
 
   const handleFakeStatsUpdate = async (e) => {
     e.preventDefault();
@@ -457,19 +478,19 @@ const AdminPanel = () => {
       <div className="stats-container">
         <div className="stat-box">
           <h3>Ümumi İstifadəçi</h3>
-          <p>{fakeStats.totalUsers}</p>
+          <p>{realStats.totalUsers}</p>
         </div>
         <div className="stat-box">
           <h3>Ümumi Sərmayə</h3>
-          <p>{fakeStats.totalInvestment}</p>
+          <p>{realStats.totalInvestment}</p>
         </div>
         <div className="stat-box">
           <h3>Aktiv Sərmayə</h3>
-          <p>{fakeStats.activeUsers}</p>
+          <p>{realStats.activeUsers}</p>
         </div>
         <div className="stat-box">
           <h3>Ümumi Sərmayə Məbləği</h3>
-          <p>{fakeStats.totalPayout} AZN</p>
+          <p>{realStats.totalPayout} AZN</p>
         </div>
       </div>
 
