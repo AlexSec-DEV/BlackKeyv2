@@ -315,11 +315,8 @@ const AdminPanel = () => {
     <table>
       <thead>
         <tr>
-          <th>ID</th>
           <th>İstifadəçi Adı</th>
           <th>Email</th>
-          <th>IP Ünvanı</th>
-          <th>Son Giriş IP</th>
           <th>Son Giriş Tarixi</th>
           <th>Balans</th>
           <th>Status</th>
@@ -329,42 +326,19 @@ const AdminPanel = () => {
       <tbody>
         {users.map(user => (
           <tr key={user._id}>
-            <td>{user._id}</td>
             <td>{user.username}</td>
             <td>{user.email}</td>
-            <td>{user.ipAddress || 'N/A'}</td>
-            <td>{user.lastLoginIp || 'N/A'}</td>
             <td>{formatDate(user.lastLoginDate)}</td>
             <td>{user.balance}</td>
             <td>{getStatusText(user.isBlocked)}</td>
             <td>
               {!user.isAdmin && (
-                <>
-                  <button
-                    className={user.isBlocked ? 'unblock-btn' : 'block-btn'}
-                    onClick={() => handleAction('USER', user._id, user.isBlocked ? 'UNBLOCK' : 'BLOCK')}
-                  >
-                    {user.isBlocked ? 'Bloku Aç' : 'Blokla'}
-                  </button>
-                  {user.ipAddress && (
-                    <button
-                      className="block-btn"
-                      onClick={() => handleBlockIP(user.ipAddress)}
-                      style={{ marginLeft: '5px' }}
-                    >
-                      IP Blokla
-                    </button>
-                  )}
-                  {user.lastLoginIp && user.lastLoginIp !== user.ipAddress && (
-                    <button
-                      className="block-btn"
-                      onClick={() => handleBlockIP(user.lastLoginIp)}
-                      style={{ marginLeft: '5px' }}
-                    >
-                      Son IP Blokla
-                    </button>
-                  )}
-                </>
+                <button
+                  className={user.isBlocked ? 'unblock-btn' : 'block-btn'}
+                  onClick={() => handleAction('USER', user._id, user.isBlocked ? 'UNBLOCK' : 'BLOCK')}
+                >
+                  {user.isBlocked ? 'Bloku Aç' : 'Blokla'}
+                </button>
               )}
             </td>
           </tr>
