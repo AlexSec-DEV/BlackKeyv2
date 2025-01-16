@@ -285,8 +285,7 @@ const AdminPanel = () => {
           <th>Son Giriş Tarixi</th>
           <th>Balans</th>
           <th>Status</th>
-          <th>İstifadəçi Əməliyyatları</th>
-          <th>IP Əməliyyatları</th>
+          <th>Əməliyyatlar</th>
         </tr>
       </thead>
       <tbody>
@@ -308,27 +307,27 @@ const AdminPanel = () => {
             </td>
             <td>
               {!user.isAdmin && (
-                <button
-                  className={user.isBlocked ? 'approve-btn' : 'reject-btn'}
-                  onClick={() => handleAction('USER', user._id, user.isBlocked ? 'UNBLOCK' : 'BLOCK')}
-                >
-                  {user.isBlocked ? 'Bloku Aç' : 'Blokla'}
-                </button>
-              )}
-            </td>
-            <td>
-              {user.ipAddress && (
-                <button
-                  className="block-ip-btn"
-                  onClick={() => {
-                    const reason = prompt('IP bloklama səbəbini daxil edin:');
-                    if (reason) {
-                      handleBlockIP(user.ipAddress, reason);
-                    }
-                  }}
-                >
-                  IP Blokla
-                </button>
+                <div className="action-buttons">
+                  <button
+                    className={user.isBlocked ? 'approve-btn' : 'reject-btn'}
+                    onClick={() => handleAction('USER', user._id, user.isBlocked ? 'UNBLOCK' : 'BLOCK')}
+                  >
+                    {user.isBlocked ? 'Bloku Aç' : 'Blokla'}
+                  </button>
+                  {user.ipAddress && (
+                    <button
+                      className="reject-btn"
+                      onClick={() => {
+                        const reason = prompt('IP bloklama səbəbini daxil edin:');
+                        if (reason) {
+                          handleBlockIP(user.ipAddress, reason);
+                        }
+                      }}
+                    >
+                      IP Blokla
+                    </button>
+                  )}
+                </div>
               )}
             </td>
           </tr>
@@ -547,104 +546,110 @@ const AdminPanel = () => {
         )}
 
         {activeTab === 'SETTINGS' && (
-          <div className="package-settings">
-            <Typography variant="h6" gutterBottom>
-              Kasa Ayarları
-            </Typography>
-            <TableContainer component={Paper}>
-              <Table>
-                <TableHead>
-                  <TableRow>
-                    <TableCell>Kasa Tipi</TableCell>
-                    <TableCell>Faiz Oranı (%)</TableCell>
-                    <TableCell>Min. Miktar</TableCell>
-                    <TableCell>Max. Miktar</TableCell>
-                    <TableCell>Əməliyyatlar</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {packageSettings.map((pkg) => (
-                    <TableRow key={pkg.type}>
-                      <TableCell>{pkg.type}</TableCell>
-                      <TableCell>
-                        {editingPackage === pkg.type ? (
-                          <TextField
-                            type="number"
-                            value={editForm.interestRate}
-                            onChange={(e) => setEditForm({ ...editForm, interestRate: e.target.value })}
-                            size="small"
-                          />
-                        ) : (
-                          `${pkg.interestRate}%`
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingPackage === pkg.type ? (
-                          <TextField
-                            type="number"
-                            value={editForm.minAmount}
-                            onChange={(e) => setEditForm({ ...editForm, minAmount: e.target.value })}
-                            size="small"
-                          />
-                        ) : (
-                          pkg.minAmount
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingPackage === pkg.type ? (
-                          <TextField
-                            type="number"
-                            value={editForm.maxAmount}
-                            onChange={(e) => setEditForm({ ...editForm, maxAmount: e.target.value })}
-                            size="small"
-                          />
-                        ) : (
-                          pkg.maxAmount
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {editingPackage === pkg.type ? (
-                          <>
-                            <Button
-                              variant="contained"
-                              color="primary"
-                              size="small"
-                              onClick={() => handleUpdatePackage(pkg.type)}
-                            >
-                              Kaydet
-                            </Button>
-                            <Button
-                              variant="outlined"
-                              color="secondary"
-                              size="small"
-                              onClick={() => setEditingPackage(null)}
-                              sx={{ ml: 1 }}
-                            >
-                              İptal
-                            </Button>
-                          </>
-                        ) : (
-                          <IconButton
-                            color="primary"
-                            onClick={() => {
-                              setEditingPackage(pkg.type);
-                              setEditForm({
-                                interestRate: pkg.interestRate,
-                                minAmount: pkg.minAmount,
-                                maxAmount: pkg.maxAmount
-                              });
-                            }}
-                          >
-                            <EditIcon />
-                          </IconButton>
-                        )}
-                      </TableCell>
+          <>
+            <div className="package-settings">
+              <Typography variant="h6" gutterBottom>
+                Kasa Ayarları
+              </Typography>
+              <TableContainer component={Paper}>
+                <Table>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>Kasa Tipi</TableCell>
+                      <TableCell>Faiz Oranı (%)</TableCell>
+                      <TableCell>Min. Miktar</TableCell>
+                      <TableCell>Max. Miktar</TableCell>
+                      <TableCell>Əməliyyatlar</TableCell>
                     </TableRow>
-                  ))}
-                </TableBody>
-              </Table>
-            </TableContainer>
-          </div>
+                  </TableHead>
+                  <TableBody>
+                    {packageSettings.map((pkg) => (
+                      <TableRow key={pkg.type}>
+                        <TableCell>{pkg.type}</TableCell>
+                        <TableCell>
+                          {editingPackage === pkg.type ? (
+                            <TextField
+                              size="small"
+                              value={editForm.interestRate}
+                              onChange={(e) => setEditForm({ ...editForm, interestRate: e.target.value })}
+                            />
+                          ) : (
+                            pkg.interestRate
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingPackage === pkg.type ? (
+                            <TextField
+                              size="small"
+                              value={editForm.minAmount}
+                              onChange={(e) => setEditForm({ ...editForm, minAmount: e.target.value })}
+                            />
+                          ) : (
+                            pkg.minAmount
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingPackage === pkg.type ? (
+                            <TextField
+                              size="small"
+                              value={editForm.maxAmount}
+                              onChange={(e) => setEditForm({ ...editForm, maxAmount: e.target.value })}
+                            />
+                          ) : (
+                            pkg.maxAmount
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          {editingPackage === pkg.type ? (
+                            <>
+                              <Button
+                                variant="contained"
+                                color="primary"
+                                size="small"
+                                onClick={() => handleUpdatePackage(pkg.type)}
+                              >
+                                Yadda Saxla
+                              </Button>
+                              <Button
+                                variant="outlined"
+                                color="secondary"
+                                size="small"
+                                onClick={() => setEditingPackage(null)}
+                                sx={{ ml: 1 }}
+                              >
+                                Ləğv Et
+                              </Button>
+                            </>
+                          ) : (
+                            <IconButton
+                              color="primary"
+                              onClick={() => {
+                                setEditingPackage(pkg.type);
+                                setEditForm({
+                                  interestRate: pkg.interestRate,
+                                  minAmount: pkg.minAmount,
+                                  maxAmount: pkg.maxAmount
+                                });
+                              }}
+                            >
+                              <EditIcon />
+                            </IconButton>
+                          )}
+                        </TableCell>
+                      </TableRow>
+                    ))}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </div>
+
+            <div className="payment-settings">
+              <Typography variant="h6" gutterBottom sx={{ mt: 4 }}>
+                Ödəniş Məlumatları
+              </Typography>
+              <PaymentInfoManager />
+            </div>
+          </>
         )}
       </div>
 
