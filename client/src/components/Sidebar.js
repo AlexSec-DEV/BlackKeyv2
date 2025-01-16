@@ -147,7 +147,7 @@ const Sidebar = () => {
                   fontSize: { xs: '0.75rem', md: '0.875rem' }
                 }}
               >
-                XP: {user?.xp || 0}/{user?.nextLevelXp || 100}
+                XP: {user?.xp || 0}/100
               </Typography>
               <Typography 
                 variant="body2" 
@@ -162,7 +162,7 @@ const Sidebar = () => {
             </Box>
             <LinearProgress
               variant="determinate"
-              value={((user?.xp || 0) / (user?.nextLevelXp || 100)) * 100}
+              value={((user?.xp || 0) / 100) * 100}
               sx={{ height: { xs: 6, md: 8 }, borderRadius: 1 }}
             />
           </Box>
