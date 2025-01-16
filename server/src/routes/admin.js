@@ -316,11 +316,10 @@ router.get('/blocked-ips', auth, isAdmin, async (req, res) => {
 router.post('/block-ip', auth, isAdmin, async (req, res) => {
   try {
     const { ipAddress, reason } = req.body;
-
-    // IP zaten bloklu mu kontrol et
+    
     const existingBlock = await BlockedIP.findOne({ ipAddress });
     if (existingBlock) {
-      return res.status(400).json({ message: 'Bu IP adresi zaten bloklu' });
+      return res.status(400).json({ message: 'Bu IP adresi zaten engellenmiş' });
     }
 
     const blockedIP = new BlockedIP({
@@ -332,8 +331,8 @@ router.post('/block-ip', auth, isAdmin, async (req, res) => {
     await blockedIP.save();
     res.status(201).json(blockedIP);
   } catch (error) {
-    console.error('IP blokla hatası:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('IP bloklama hatası:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 
@@ -351,6 +350,17 @@ router.delete('/unblock-ip/:ipAddress', auth, isAdmin, async (req, res) => {
   } catch (error) {
     console.error('IP bloğu kaldırma hatası:', error);
     res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+router.post('/unblock-ip/:ipAddress', auth, isAdmin, async (req, res) => {
+  try {
+    const { ipAddress } = req.params;
+    await BlockedIP.findOneAndDelete({ ipAddress });
+    res.json({ message: 'IP adresi engeli kaldırıldı' });
+  } catch (error) {
+    console.error('IP engel kaldırma hatası:', error);
+    res.status(500).json({ message: error.message });
   }
 });
 

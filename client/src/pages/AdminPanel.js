@@ -284,25 +284,30 @@ const AdminPanel = () => {
     }
   };
 
-  const handleBlockIP = async (ipAddress, reason) => {
+  const handleBlockIP = async (ipAddress) => {
     try {
+      const reason = prompt('IP bloklama sebebini girin:');
+      if (!reason) return;
+
       await api.post('/admin/block-ip', { ipAddress, reason });
-      alert('IP ünvanı uğurla bloklandı');
-      await loadBlockedIPs();
+      alert('IP adresi başarıyla bloklandı');
+      await loadUsers();
     } catch (error) {
-      console.error('IP bloklama xətası:', error);
-      alert('IP bloklanarkən xəta baş verdi');
+      console.error('IP bloklama hatası:', error);
+      alert('IP bloklama işlemi başarısız: ' + error.response?.data?.message);
     }
   };
 
   const handleUnblockIP = async (ipAddress) => {
     try {
-      await api.delete(`/admin/unblock-ip/${ipAddress}`);
-      alert('IP bloku uğurla qaldırıldı');
-      await loadBlockedIPs();
+      if (!window.confirm('IP engelini kaldırmak istediğinize emin misiniz?')) return;
+      
+      await api.post(`/admin/unblock-ip/${ipAddress}`);
+      alert('IP engeli başarıyla kaldırıldı');
+      await loadUsers();
     } catch (error) {
-      console.error('IP bloku qaldırma xətası:', error);
-      alert('IP bloku qaldırılarkən xəta baş verdi');
+      console.error('IP engel kaldırma hatası:', error);
+      alert('IP engeli kaldırma işlemi başarısız: ' + error.response?.data?.message);
     }
   };
 
@@ -322,45 +327,44 @@ const AdminPanel = () => {
         </tr>
       </thead>
       <tbody>
-        {users.map((user) => (
+        {users.map(user => (
           <tr key={user._id}>
             <td>{user._id}</td>
             <td>{user.username}</td>
             <td>{user.email}</td>
             <td>{user.ipAddress || 'N/A'}</td>
             <td>{user.lastLoginIp || 'N/A'}</td>
-            <td>
-              {user.lastLoginDate ? new Date(user.lastLoginDate).toLocaleString() : 'N/A'}
-            </td>
+            <td>{formatDate(user.lastLoginDate)}</td>
             <td>{user.balance}</td>
-            <td>
-              <span className={`status ${user.isBlocked ? 'rejected' : 'approved'}`}>
-                {user.isBlocked ? 'Bloklanıb' : 'Aktiv'}
-              </span>
-            </td>
+            <td>{getStatusText(user.isBlocked)}</td>
             <td>
               {!user.isAdmin && (
-                <div className="action-buttons">
+                <>
                   <button
-                    className={user.isBlocked ? 'approve-btn' : 'reject-btn'}
+                    className={user.isBlocked ? 'unblock-btn' : 'block-btn'}
                     onClick={() => handleAction('USER', user._id, user.isBlocked ? 'UNBLOCK' : 'BLOCK')}
                   >
                     {user.isBlocked ? 'Bloku Aç' : 'Blokla'}
                   </button>
                   {user.ipAddress && (
                     <button
-                      className="reject-btn"
-                      onClick={() => {
-                        const reason = prompt('IP bloklama səbəbini daxil edin:');
-                        if (reason) {
-                          handleBlockIP(user.ipAddress, reason);
-                        }
-                      }}
+                      className="block-btn"
+                      onClick={() => handleBlockIP(user.ipAddress)}
+                      style={{ marginLeft: '5px' }}
                     >
                       IP Blokla
                     </button>
                   )}
-                </div>
+                  {user.lastLoginIp && user.lastLoginIp !== user.ipAddress && (
+                    <button
+                      className="block-btn"
+                      onClick={() => handleBlockIP(user.lastLoginIp)}
+                      style={{ marginLeft: '5px' }}
+                    >
+                      Son IP Blokla
+                    </button>
+                  )}
+                </>
               )}
             </td>
           </tr>
