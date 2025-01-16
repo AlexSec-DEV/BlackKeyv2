@@ -154,6 +154,10 @@ const AdminPanel = () => {
         await api.post(`/admin/deposits/${id}/${action.toLowerCase()}`);
         await fetchData();
         alert('Depozit işlemi başarıyla tamamlandı');
+      } else if (type === 'WITHDRAWAL') {
+        await api.post(`/transactions/withdraw/${id}/${action.toLowerCase()}`);
+        await fetchData();
+        alert(action === 'APPROVE' ? 'Pul çəkmə tələbi təsdiqləndi' : 'Pul çəkmə tələbi rədd edildi');
       }
     } catch (error) {
       console.error('İşlem hatası:', error);

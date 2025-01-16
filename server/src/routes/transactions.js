@@ -88,36 +88,83 @@ router.post('/withdraw', auth, async (req, res) => {
   try {
     console.log('Withdraw request received:', req.body);
     const { amount, paymentMethod, transactionDetails } = req.body;
-    const user = await User.findById(req.user.id);
+    const user = await User.findById(req.user._id);
 
     if (!user) {
-      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+      return res.status(404).json({ message: 'İstifadəçi tapılmadı' });
     }
 
     if (user.balance < amount) {
-      return res.status(400).json({ message: 'Yetersiz bakiye' });
+      return res.status(400).json({ message: 'Balansınız kifayət deyil' });
     }
 
     if (amount < 10) {
-      return res.status(400).json({ message: 'Minimum çekim miktarı 10 AZN' });
+      return res.status(400).json({ message: 'Minimum məbləğ 10 AZN olmalıdır' });
     }
 
     const transaction = new Transaction({
-      user: req.user.id,
+      user: req.user._id,
       type: 'WITHDRAWAL',
       amount: parseFloat(amount),
-      paymentMethod: paymentMethod,
-      transactionDetails: transactionDetails,
+      paymentMethod,
+      transactionDetails,
       status: 'PENDING'
     });
 
-    // Bakiyeyi şimdi düşürmüyoruz, admin onayladığında düşecek
-    console.log('Created transaction:', transaction);
     await transaction.save();
-    res.json(transaction);
+    res.status(201).json({
+      message: 'Pul çəkmə tələbiniz qəbul edildi',
+      transaction
+    });
   } catch (error) {
     console.error('Para çekme hatası:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    res.status(500).json({ message: 'Çıxarma prosesi zamanı xəta baş verdi' });
+  }
+});
+
+// Para çekme işlemini onayla/reddet
+router.post('/withdraw/:withdrawalId/:action', auth, async (req, res) => {
+  try {
+    const { withdrawalId, action } = req.params;
+    const withdrawal = await Transaction.findById(withdrawalId);
+
+    if (!withdrawal) {
+      return res.status(404).json({ message: 'Əməliyyat tapılmadı' });
+    }
+
+    if (withdrawal.status !== 'PENDING') {
+      return res.status(400).json({ message: 'Bu əməliyyat artıq təsdiqlənib və ya rədd edilib' });
+    }
+
+    const user = await User.findById(withdrawal.user);
+    if (!user) {
+      return res.status(404).json({ message: 'İstifadəçi tapılmadı' });
+    }
+
+    if (action === 'approve') {
+      if (user.balance < withdrawal.amount) {
+        return res.status(400).json({ message: 'İstifadəçinin balansı kifayət deyil' });
+      }
+      user.balance -= withdrawal.amount;
+      withdrawal.status = 'APPROVED';
+      await user.save();
+    } else if (action === 'reject') {
+      withdrawal.status = 'REJECTED';
+    } else {
+      return res.status(400).json({ message: 'Yanlış əməliyyat' });
+    }
+
+    withdrawal.processedAt = Date.now();
+    withdrawal.processedBy = req.user._id;
+    await withdrawal.save();
+
+    res.json({
+      message: action === 'approve' ? 'Pul çəkmə tələbi təsdiqləndi' : 'Pul çəkmə tələbi rədd edildi',
+      withdrawal
+    });
+  } catch (error) {
+    console.error('Para çekme onay/red hatası:', error);
+    res.status(500).json({ message: 'Əməliyyat zamanı xəta baş verdi' });
   }
 });
 
