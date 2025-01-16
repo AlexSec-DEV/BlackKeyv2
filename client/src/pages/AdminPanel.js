@@ -26,7 +26,6 @@ import PaymentInfoManager from '../components/PaymentInfoManager';
 import BlockIcon from '@mui/icons-material/Block';
 import LockOpenIcon from '@mui/icons-material/LockOpen';
 import './AdminPanel.css';
-import { useNavigate } from 'react-router-dom';
 
 const modalStyle = {
   position: 'absolute',
@@ -42,8 +41,7 @@ const modalStyle = {
 };
 
 const AdminPanel = () => {
-  const { api, user, isAuthenticated } = useAuth();
-  const navigate = useNavigate();
+  const { api } = useAuth();
   const [activeTab, setActiveTab] = useState('USERS');
   const [users, setUsers] = useState([]);
   const [deposits, setDeposits] = useState([]);
@@ -69,13 +67,6 @@ const AdminPanel = () => {
     maxAmount: ''
   });
   const [blockedIPs, setBlockedIPs] = useState([]);
-
-  useEffect(() => {
-    if (!isAuthenticated || !user?.isAdmin) {
-      navigate('/login');
-      return;
-    }
-  }, [isAuthenticated, user, navigate]);
 
   const fetchData = useCallback(async () => {
     try {
@@ -514,8 +505,6 @@ const AdminPanel = () => {
 
   const tabs = [
     { id: 'USERS', label: 'İstifadəçilər' },
-    { id: 'IP_MONITOR', label: 'IP Nəzarət' },
-    { id: 'BLOCKED_IPS', label: 'Bloklanmış IP\'lər' },
     { id: 'DEPOSITS', label: 'Depozitlər' },
     { id: 'WITHDRAWALS', label: 'Çıxarışlar' },
     { id: 'SETTINGS', label: 'Tənzimləmələr' }
@@ -558,8 +547,6 @@ const AdminPanel = () => {
 
       <div className="content">
         {activeTab === 'USERS' && renderUserTable()}
-        {activeTab === 'IP_MONITOR' && renderIPMonitorTable()}
-        {activeTab === 'BLOCKED_IPS' && renderBlockedIPsTable()}
         {activeTab === 'DEPOSITS' && renderDepositsTable()}
         {activeTab === 'WITHDRAWALS' && (
           <table>

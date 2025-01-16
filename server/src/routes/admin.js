@@ -8,7 +8,6 @@ const Transaction = mongoose.model('Transaction');
 const PaymentInfo = mongoose.model('PaymentInfo');
 const FakeStats = mongoose.model('FakeStats');
 const PackageSettings = require('../models/PackageSettings');
-const BlockedIP = require('../models/BlockedIP');
 
 console.log('Admin routes being initialized...');
 
@@ -40,7 +39,7 @@ const isAdmin = async (req, res, next) => {
 router.get('/users', auth, isAdmin, async (req, res) => {
   console.log('GET /admin/users endpoint hit');
   try {
-    const users = await User.find({}, '-password').select('+ipAddress +lastLoginIp +lastLoginDate');
+    const users = await User.find({}, '-password');
     console.log(`Found ${users.length} users`);
     res.json(users);
   } catch (err) {
@@ -250,41 +249,6 @@ router.put('/fake-stats', auth, isAdmin, async (req, res) => {
   }
 });
 
-// Kullanıcı engelleme/engel kaldırma
-router.post('/users/:userId/block', auth, isAdmin, async (req, res) => {
-  try {
-    const { userId } = req.params;
-    const { action } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
-    }
-
-    // Admin kendini engelleyemez
-    if (user.isAdmin) {
-      return res.status(400).json({ message: 'Admin kullanıcısı engellenemez' });
-    }
-
-    if (action === 'block') {
-      user.isBlocked = true;
-    } else if (action === 'unblock') {
-      user.isBlocked = false;
-    } else {
-      return res.status(400).json({ message: 'Geçersiz işlem' });
-    }
-
-    await user.save();
-    res.json({ 
-      message: action === 'block' ? 'Kullanıcı engellendi' : 'Kullanıcı engeli kaldırıldı',
-      user 
-    });
-  } catch (error) {
-    console.error('User block/unblock error:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
 // Tüm kasa ayarlarını getir
 router.get('/package-settings', auth, isAdmin, async (req, res) => {
   try {
@@ -320,69 +284,6 @@ router.put('/package-settings/:type', auth, isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Kasa ayarları güncellenirken hata:', error);
     res.status(500).json({ message: 'Kasa ayarları güncellenirken bir hata oluştu' });
-  }
-});
-
-// Bloklu IP'leri getir
-router.get('/blocked-ips', auth, isAdmin, async (req, res) => {
-  try {
-    const blockedIPs = await BlockedIP.find().populate('blockedBy', 'username');
-    res.json(blockedIPs);
-  } catch (error) {
-    console.error('Bloklu IP\'leri getirme hatası:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-// IP blokla
-router.post('/block-ip', auth, isAdmin, async (req, res) => {
-  try {
-    const { ipAddress, reason } = req.body;
-    
-    const existingBlock = await BlockedIP.findOne({ ipAddress });
-    if (existingBlock) {
-      return res.status(400).json({ message: 'Bu IP adresi zaten engellenmiş' });
-    }
-
-    const blockedIP = new BlockedIP({
-      ipAddress,
-      reason,
-      blockedBy: req.user._id
-    });
-
-    await blockedIP.save();
-    res.status(201).json(blockedIP);
-  } catch (error) {
-    console.error('IP bloklama hatası:', error);
-    res.status(500).json({ message: error.message });
-  }
-});
-
-// IP bloğunu kaldır
-router.delete('/unblock-ip/:ipAddress', auth, isAdmin, async (req, res) => {
-  try {
-    const { ipAddress } = req.params;
-    const result = await BlockedIP.findOneAndDelete({ ipAddress });
-    
-    if (!result) {
-      return res.status(404).json({ message: 'Bloklu IP bulunamadı' });
-    }
-
-    res.json({ message: 'IP bloğu başarıyla kaldırıldı' });
-  } catch (error) {
-    console.error('IP bloğu kaldırma hatası:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
-  }
-});
-
-router.post('/unblock-ip/:ipAddress', auth, isAdmin, async (req, res) => {
-  try {
-    const { ipAddress } = req.params;
-    await BlockedIP.findOneAndDelete({ ipAddress });
-    res.json({ message: 'IP adresi engeli kaldırıldı' });
-  } catch (error) {
-    console.error('IP engel kaldırma hatası:', error);
-    res.status(500).json({ message: error.message });
   }
 });
 

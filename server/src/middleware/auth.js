@@ -1,20 +1,8 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const BlockedIP = require('../models/BlockedIP');
 
 const auth = async (req, res, next) => {
   try {
-    // IP kontrolü
-    const clientIP = req.ip || req.connection.remoteAddress;
-    const isIPBlocked = await BlockedIP.findOne({ ipAddress: clientIP });
-    
-    if (isIPBlocked) {
-      return res.status(403).json({ 
-        message: 'Bu IP adresi bloklanmışdır',
-        reason: isIPBlocked.reason 
-      });
-    }
-
     const token = req.header('Authorization')?.replace('Bearer ', '');
     
     if (!token) {
