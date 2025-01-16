@@ -8,6 +8,7 @@ const Transaction = mongoose.model('Transaction');
 const PaymentInfo = mongoose.model('PaymentInfo');
 const FakeStats = mongoose.model('FakeStats');
 const PackageSettings = require('../models/PackageSettings');
+const BlockedIP = require('../models/BlockedIP');
 
 console.log('Admin routes being initialized...');
 
@@ -39,7 +40,7 @@ const isAdmin = async (req, res, next) => {
 router.get('/users', auth, isAdmin, async (req, res) => {
   console.log('GET /admin/users endpoint hit');
   try {
-    const users = await User.find({}, '-password');
+    const users = await User.find({}, '-password').select('+ipAddress +lastLoginIp +lastLoginDate');
     console.log(`Found ${users.length} users`);
     res.json(users);
   } catch (err) {
@@ -297,6 +298,59 @@ router.put('/package-settings/:type', auth, isAdmin, async (req, res) => {
   } catch (error) {
     console.error('Kasa ayarları güncellenirken hata:', error);
     res.status(500).json({ message: 'Kasa ayarları güncellenirken bir hata oluştu' });
+  }
+});
+
+// Bloklu IP'leri getir
+router.get('/blocked-ips', auth, isAdmin, async (req, res) => {
+  try {
+    const blockedIPs = await BlockedIP.find().populate('blockedBy', 'username');
+    res.json(blockedIPs);
+  } catch (error) {
+    console.error('Bloklu IP\'leri getirme hatası:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// IP blokla
+router.post('/block-ip', auth, isAdmin, async (req, res) => {
+  try {
+    const { ipAddress, reason } = req.body;
+
+    // IP zaten bloklu mu kontrol et
+    const existingBlock = await BlockedIP.findOne({ ipAddress });
+    if (existingBlock) {
+      return res.status(400).json({ message: 'Bu IP adresi zaten bloklu' });
+    }
+
+    const blockedIP = new BlockedIP({
+      ipAddress,
+      reason,
+      blockedBy: req.user._id
+    });
+
+    await blockedIP.save();
+    res.status(201).json(blockedIP);
+  } catch (error) {
+    console.error('IP blokla hatası:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
+  }
+});
+
+// IP bloğunu kaldır
+router.delete('/unblock-ip/:ipAddress', auth, isAdmin, async (req, res) => {
+  try {
+    const { ipAddress } = req.params;
+    const result = await BlockedIP.findOneAndDelete({ ipAddress });
+    
+    if (!result) {
+      return res.status(404).json({ message: 'Bloklu IP bulunamadı' });
+    }
+
+    res.json({ message: 'IP bloğu başarıyla kaldırıldı' });
+  } catch (error) {
+    console.error('IP bloğu kaldırma hatası:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

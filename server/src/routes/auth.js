@@ -1,10 +1,30 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
+const BlockedIP = require('../models/BlockedIP');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const cloudinary = require('../config/cloudinary');
+
+// IP kontrolü middleware
+const checkBlockedIP = async (req, res, next) => {
+  try {
+    const ip = req.ip || req.connection.remoteAddress;
+    const blockedIP = await BlockedIP.findOne({ ipAddress: ip });
+    
+    if (blockedIP) {
+      return res.status(403).json({ 
+        message: 'IP adresiniz admin tarafından bloke edilmiştir.',
+        error: 'IP_BLOCKED'
+      });
+    }
+    next();
+  } catch (error) {
+    console.error('IP kontrol hatası:', error);
+    next(error);
+  }
+};
 
 // Auth middleware
 const auth = async (req, res, next) => {
@@ -148,9 +168,10 @@ router.put('/profile', auth, async (req, res) => {
 });
 
 // Kayıt ol
-router.post('/register', async (req, res) => {
+router.post('/register', checkBlockedIP, async (req, res) => {
   try {
     const { username, email, password } = req.body;
+    const ip = req.ip || req.connection.remoteAddress;
 
     const existingUser = await User.findOne({
       $or: [{ email }, { username }]
@@ -159,6 +180,15 @@ router.post('/register', async (req, res) => {
     if (existingUser) {
       return res.status(400).json({
         message: 'Bu email veya kullanıcı adı zaten kullanılıyor'
+      });
+    }
+
+    // IP adresinden kayıtlı kullanıcı sayısını kontrol et
+    const ipUserCount = await User.countDocuments({ ipAddress: ip });
+    if (ipUserCount >= 3) { // Maksimum 3 hesap
+      return res.status(400).json({
+        message: 'Bu IP adresinden daha fazla hesap oluşturamazsınız',
+        error: 'IP_LIMIT_EXCEEDED'
       });
     }
 
@@ -172,7 +202,10 @@ router.post('/register', async (req, res) => {
       level: 1,
       xp: 0,
       nextLevelXp: 100,
-      profileImage: 'https://res.cloudinary.com/dgrbjuqxl/image/upload/v1705347750/default-avatar.png'
+      profileImage: 'https://res.cloudinary.com/dgrbjuqxl/image/upload/v1705347750/default-avatar.png',
+      ipAddress: ip,
+      lastLoginIp: ip,
+      lastLoginDate: new Date()
     });
 
     await user.save();
@@ -195,7 +228,8 @@ router.post('/register', async (req, res) => {
         level: user.level,
         xp: user.xp,
         nextLevelXp: user.nextLevelXp,
-        profileImage: user.profileImage
+        profileImage: user.profileImage,
+        ipAddress: user.ipAddress
       }
     });
   } catch (error) {
@@ -205,9 +239,10 @@ router.post('/register', async (req, res) => {
 });
 
 // Giriş yap
-router.post('/login', async (req, res) => {
+router.post('/login', checkBlockedIP, async (req, res) => {
   try {
     const { email, password } = req.body;
+    const ip = req.ip || req.connection.remoteAddress;
 
     // Kullanıcıyı bul
     const user = await User.findOne({ email });
@@ -238,6 +273,11 @@ router.post('/login', async (req, res) => {
       });
     }
 
+    // Son giriş bilgilerini güncelle
+    user.lastLoginIp = ip;
+    user.lastLoginDate = new Date();
+    await user.save();
+
     // Token oluştur
     const token = jwt.sign(
       { id: user._id },
@@ -261,7 +301,10 @@ router.post('/login', async (req, res) => {
         profileImage: user.profileImage,
         phoneNumber: user.phoneNumber,
         country: user.country,
-        birthDate: user.birthDate
+        birthDate: user.birthDate,
+        ipAddress: user.ipAddress,
+        lastLoginIp: user.lastLoginIp,
+        lastLoginDate: user.lastLoginDate
       }
     });
   } catch (error) {

@@ -48,6 +48,16 @@ const userSchema = new mongoose.Schema({
     profileImage: {
         type: String,
         default: 'default-avatar.png'
+    },
+    ipAddress: {
+        type: String,
+        required: true
+    },
+    lastLoginIp: {
+        type: String
+    },
+    lastLoginDate: {
+        type: Date
     }
 }, {
     timestamps: true
