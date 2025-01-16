@@ -30,9 +30,19 @@ router.post('/deposit', auth, upload.single('receipt'), async (req, res) => {
 
     const { amount, paymentMethod } = req.body;
 
+    // Miktar kontrolü
+    if (!amount || isNaN(amount) || amount <= 0) {
+      return res.status(400).json({ message: 'Düzgün məbləğ daxil edin' });
+    }
+
+    // Dosya kontrolü
     if (!req.file) {
-      console.log('No file uploaded');
-      return res.status(400).json({ message: 'Makbuz yüklemesi gerekli' });
+      return res.status(400).json({ message: 'Ödəniş qəbzi tələb olunur' });
+    }
+
+    // Ödeme yöntemi kontrolü
+    if (!paymentMethod) {
+      return res.status(400).json({ message: 'Ödəniş üsulu seçin' });
     }
 
     console.log('Converting file to base64');
@@ -48,7 +58,7 @@ router.post('/deposit', auth, upload.single('receipt'), async (req, res) => {
 
     console.log('Creating transaction');
     const transaction = new Transaction({
-      user: req.user.id,
+      user: req.user._id, // _id kullanıyoruz, id değil
       type: 'DEPOSIT',
       amount: parseFloat(amount),
       paymentMethod,
@@ -60,14 +70,15 @@ router.post('/deposit', auth, upload.single('receipt'), async (req, res) => {
     await transaction.save();
     console.log('Transaction saved successfully');
 
-    res.status(201).json(transaction);
+    res.status(201).json({
+      message: 'Balans artırma tələbiniz qəbul edildi',
+      transaction
+    });
   } catch (error) {
     console.error('Para yatırma hatası:', error);
-    console.error('Error stack:', error.stack);
     res.status(500).json({ 
-      message: 'Server error', 
-      error: error.message,
-      stack: error.stack 
+      message: 'Balans artırma zamanı xəta baş verdi',
+      error: error.message
     });
   }
 });

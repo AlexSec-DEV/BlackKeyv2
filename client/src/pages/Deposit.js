@@ -9,12 +9,13 @@ const Deposit = () => {
   const [paymentMethod, setPaymentMethod] = useState('CREDIT_CARD');
   const [selectedFile, setSelectedFile] = useState(null);
   const [paymentInfo, setPaymentInfo] = useState(null);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchPaymentInfo = useCallback(async () => {
-    if (loading) return;
+    if (!isInitialLoad && loading) return;
     
     try {
       setLoading(true);
@@ -26,12 +27,15 @@ const Deposit = () => {
       setError('Ödəniş məlumatları yüklənərkən xəta baş verdi');
     } finally {
       setLoading(false);
+      setIsInitialLoad(false);
     }
-  }, [api, loading]);
+  }, [api, loading, isInitialLoad]);
 
   useEffect(() => {
-    fetchPaymentInfo();
-  }, [fetchPaymentInfo, paymentMethod]);
+    if (isInitialLoad) {
+      fetchPaymentInfo();
+    }
+  }, [fetchPaymentInfo, isInitialLoad]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -88,6 +92,7 @@ const Deposit = () => {
 
   const handlePaymentMethodChange = (newMethod) => {
     setPaymentMethod(newMethod);
+    fetchPaymentInfo();
   };
 
   const renderPaymentDetails = () => {
@@ -124,8 +129,19 @@ const Deposit = () => {
     }
   };
 
-  if (loading) {
-    return <div>Yüklənir...</div>;
+  if (loading && isInitialLoad) {
+    return (
+      <div className="loading-container" style={{
+        display: 'flex',
+        justifyContent: 'center',
+        alignItems: 'center',
+        height: '100vh',
+        fontSize: '18px',
+        color: '#666'
+      }}>
+        Yüklənir...
+      </div>
+    );
   }
 
   return (
