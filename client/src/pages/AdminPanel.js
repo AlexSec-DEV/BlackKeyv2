@@ -98,6 +98,7 @@ const AdminPanel = () => {
   const fetchRealStats = useCallback(async () => {
     try {
       const response = await api.get('/admin/stats');
+      console.log('Backend stats response:', response.data);
       if (response.data) {
         setRealStats({
           totalUsers: response.data.totalUsers || 0,
