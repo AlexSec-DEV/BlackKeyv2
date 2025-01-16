@@ -14,39 +14,39 @@ const upload = multer({
     fileSize: 5 * 1024 * 1024 // 5MB limit
   },
   fileFilter: function(req, file, cb) {
-    const filetypes = /jpeg|jpg|png/;
-    const mimetype = filetypes.test(file.mimetype);
-    const extname = filetypes.test(file.originalname.toLowerCase());
-
-    if (mimetype && extname) {
-      return cb(null, true);
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new Error('Sadece resim dosyaları yüklenebilir!'));
     }
-    cb(new Error('Sadece resim dosyaları yüklenebilir!'));
+    cb(null, true);
   }
 });
 
 // Para yatırma işlemi
 router.post('/deposit', auth, upload.single('receipt'), async (req, res) => {
   try {
-    console.log('Deposit request received:', req.body);
+    console.log('Deposit request received');
+    console.log('Request body:', req.body);
     console.log('File:', req.file);
 
     const { amount, paymentMethod } = req.body;
 
     if (!req.file) {
+      console.log('No file uploaded');
       return res.status(400).json({ message: 'Makbuz yüklemesi gerekli' });
     }
 
-    // Dosyayı base64'e çevir
+    console.log('Converting file to base64');
     const base64File = req.file.buffer.toString('base64');
     const dataURI = `data:${req.file.mimetype};base64,${base64File}`;
 
-    // Cloudinary'ye yükle
+    console.log('Uploading to Cloudinary');
     const result = await cloudinary.uploader.upload(dataURI, {
       folder: 'receipts',
-      resource_type: 'auto'
+      resource_type: 'image'
     });
+    console.log('Cloudinary upload result:', result);
 
+    console.log('Creating transaction');
     const transaction = new Transaction({
       user: req.user.id,
       type: 'DEPOSIT',
@@ -56,12 +56,19 @@ router.post('/deposit', auth, upload.single('receipt'), async (req, res) => {
       status: 'PENDING'
     });
 
-    console.log('Created transaction:', transaction);
+    console.log('Saving transaction:', transaction);
     await transaction.save();
+    console.log('Transaction saved successfully');
+
     res.status(201).json(transaction);
   } catch (error) {
     console.error('Para yatırma hatası:', error);
-    res.status(500).json({ message: 'Server error', error: error.message });
+    console.error('Error stack:', error.stack);
+    res.status(500).json({ 
+      message: 'Server error', 
+      error: error.message,
+      stack: error.stack 
+    });
   }
 });
 

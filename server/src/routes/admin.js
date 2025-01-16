@@ -265,6 +265,9 @@ router.post('/users/:userId/block', auth, isAdmin, async (req, res) => {
 // Tüm kasa ayarlarını getir
 router.get('/package-settings', auth, isAdmin, async (req, res) => {
   try {
+    // Önce varsayılan ayarları kontrol et ve oluştur
+    await PackageSettings.initializeDefaultSettings();
+    
     const settings = await PackageSettings.find().sort({ type: 1 });
     res.json(settings);
   } catch (error) {
