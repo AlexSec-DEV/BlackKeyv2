@@ -6,7 +6,6 @@ import {
   Typography,
   Button,
   Box,
-  ButtonGroup,
   Container
 } from '@mui/material';
 import VpnKeyIcon from '@mui/icons-material/VpnKey';
@@ -19,9 +18,10 @@ import {
   Logout as LogoutIcon,
   AdminPanelSettings as AdminIcon,
   Login as LoginIcon,
-  PersonAdd as RegisterIcon
+  PersonAdd as RegisterIcon,
+  School as SchoolIcon,
+  History as HistoryIcon
 } from '@mui/icons-material';
-import HistoryIcon from '@mui/icons-material/History';
 
 const Navbar = () => {
   const { user, logout } = useAuth();
@@ -39,12 +39,13 @@ const Navbar = () => {
             sx={{
               mr: 2,
               display: 'flex',
+              alignItems: 'center',
               fontWeight: 700,
               color: '#ff0000',
               textDecoration: 'none',
             }}
           >
-            Black Key
+            <VpnKeyIcon sx={{ mr: 1 }} /> Black Key
           </Typography>
 
           <Box sx={{ flexGrow: 1, display: 'flex', justifyContent: 'flex-end' }}>
@@ -53,6 +54,7 @@ const Navbar = () => {
                 <Button
                   component={RouterLink}
                   to="/dashboard"
+                  startIcon={<DashboardIcon />}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
                   İDARƏ PANELİ
@@ -61,6 +63,7 @@ const Navbar = () => {
                 <Button
                   component={RouterLink}
                   to="/how-to-earn"
+                  startIcon={<SchoolIcon />}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
                   NECƏ QAZANIRIQ
@@ -69,6 +72,7 @@ const Navbar = () => {
                 <Button
                   component={RouterLink}
                   to="/deposit"
+                  startIcon={<DepositIcon />}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
                   PUL YÜKLƏ
@@ -77,6 +81,7 @@ const Navbar = () => {
                 <Button
                   component={RouterLink}
                   to="/withdraw"
+                  startIcon={<WithdrawIcon />}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
                   PUL ÇƏK
@@ -85,6 +90,7 @@ const Navbar = () => {
                 <Button
                   component={RouterLink}
                   to="/odeme-tarihcesi"
+                  startIcon={<HistoryIcon />}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
                   ÖDƏMƏ TARİXÇƏSİ
@@ -94,6 +100,7 @@ const Navbar = () => {
                   <Button
                     component={RouterLink}
                     to="/admin"
+                    startIcon={<AdminIcon />}
                     sx={{ color: 'white', textTransform: 'none' }}
                   >
                     ADMİN PANEL
@@ -103,6 +110,7 @@ const Navbar = () => {
                 <Button
                   component={RouterLink}
                   to="/profile"
+                  startIcon={<ProfileIcon />}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
                   PROFİL
@@ -110,6 +118,7 @@ const Navbar = () => {
 
                 <Button
                   onClick={logout}
+                  startIcon={<LogoutIcon />}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
                   ÇIXIŞ
@@ -120,6 +129,7 @@ const Navbar = () => {
                 <Button
                   component={RouterLink}
                   to="/login"
+                  startIcon={<LoginIcon />}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
                   Giriş
@@ -127,6 +137,7 @@ const Navbar = () => {
                 <Button
                   component={RouterLink}
                   to="/register"
+                  startIcon={<RegisterIcon />}
                   sx={{ color: 'white', textTransform: 'none' }}
                 >
                   Qeydiyyat
