@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { FaSave, FaCreditCard, FaMobileAlt, FaBitcoin } from 'react-icons/fa';
 import './PaymentInfoManager.css';
 
 const PaymentInfoManager = ({ onUpdate }) => {
@@ -114,19 +113,19 @@ const PaymentInfoManager = ({ onUpdate }) => {
           className={activeTab === 'CREDIT_CARD' ? 'active' : ''}
           onClick={() => setActiveTab('CREDIT_CARD')}
         >
-          <FaCreditCard /> Kredit Kartı
+          Kredit Kartı
         </button>
         <button
           className={activeTab === 'M10' ? 'active' : ''}
           onClick={() => setActiveTab('M10')}
         >
-          <FaMobileAlt /> M10
+          M10
         </button>
         <button
           className={activeTab === 'CRYPTO' ? 'active' : ''}
           onClick={() => setActiveTab('CRYPTO')}
         >
-          <FaBitcoin /> Kripto
+          Kripto
         </button>
       </div>
 
@@ -163,9 +162,7 @@ const PaymentInfoManager = ({ onUpdate }) => {
                 required
               />
             </div>
-            <button type="submit">
-              <FaSave /> Yenilə
-            </button>
+            <button type="submit">Yenilə</button>
           </form>
         )}
 
@@ -181,9 +178,7 @@ const PaymentInfoManager = ({ onUpdate }) => {
                 required
               />
             </div>
-            <button type="submit">
-              <FaSave /> Yenilə
-            </button>
+            <button type="submit">Yenilə</button>
           </form>
         )}
 
@@ -199,9 +194,7 @@ const PaymentInfoManager = ({ onUpdate }) => {
                 required
               />
             </div>
-            <button type="submit">
-              <FaSave /> Yenilə
-            </button>
+            <button type="submit">Yenilə</button>
           </form>
         )}
       </div>

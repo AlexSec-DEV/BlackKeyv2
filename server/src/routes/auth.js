@@ -1,34 +1,10 @@
 const express = require('express');
 const router = express.Router();
 const User = require('../models/User');
-const BlockedIP = require('../models/BlockedIP');
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const multer = require('multer');
 const cloudinary = require('../config/cloudinary');
-
-// IP bloklama kontrolü middleware
-const checkBlockedIP = async (req, res, next) => {
-  try {
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
-               req.headers['x-real-ip'] || 
-               req.connection.remoteAddress || 
-               req.socket.remoteAddress || 
-               req.ip;
-
-    const blockedIP = await BlockedIP.findOne({ ipAddress: ip });
-    if (blockedIP) {
-      return res.status(403).json({ 
-        message: 'Bu IP adresi yönetici tarafından engellenmiştir.',
-        error: 'IP_BLOCKED'
-      });
-    }
-    next();
-  } catch (error) {
-    console.error('IP kontrol hatası:', error);
-    next(error);
-  }
-};
 
 // Auth middleware
 const auth = async (req, res, next) => {
@@ -98,21 +74,11 @@ router.post('/profile/image', auth, upload.single('profileImage'), async (req, r
 
     // Cloudinary'ye yükle
     console.log('Cloudinary\'ye yükleniyor...');
-    let result;
-    try {
-      result = await cloudinary.uploader.upload(dataURI, {
-        folder: 'profiles',
-        resource_type: 'image',
-        transformation: [
-          { width: 500, height: 500, crop: 'limit' },
-          { quality: 'auto:good' }
-        ]
-      });
-      console.log('Cloudinary yükleme sonucu:', result);
-    } catch (cloudinaryError) {
-      console.error('Cloudinary yükleme hatası:', cloudinaryError);
-      return res.status(500).json({ message: 'Resim yüklenirken bir hata oluştu' });
-    }
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'profiles',
+      resource_type: 'image'
+    });
+    console.log('Cloudinary yükleme sonucu:', result);
 
     // Eski profil resmini Cloudinary'den sil (varsayılan resim değilse)
     if (user.profileImage && user.profileImage.includes('cloudinary')) {
@@ -122,7 +88,6 @@ router.post('/profile/image', auth, upload.single('profileImage'), async (req, r
         console.log('Eski profil resmi Cloudinary\'den silindi');
       } catch (error) {
         console.error('Eski resim silinirken hata:', error);
-        // Eski resim silinmese bile devam et
       }
     }
 
@@ -153,9 +118,6 @@ router.put('/profile', auth, async (req, res) => {
 
     // Şifre değişikliği varsa kontrol et
     if (newPassword) {
-      if (!currentPassword) {
-        return res.status(400).json({ message: 'Mevcut şifre gerekli' });
-      }
       // Mevcut şifreyi kontrol et
       const isMatch = await user.comparePassword(currentPassword);
       if (!isMatch) {
@@ -165,9 +127,9 @@ router.put('/profile', auth, async (req, res) => {
     }
 
     // Diğer bilgileri güncelle
-    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
-    if (country !== undefined) user.country = country;
-    if (birthDate !== undefined) user.birthDate = birthDate;
+    if (phoneNumber) user.phoneNumber = phoneNumber;
+    if (country) user.country = country;
+    if (birthDate) user.birthDate = birthDate;
 
     await user.save();
 
@@ -188,77 +150,31 @@ router.put('/profile', auth, async (req, res) => {
 // Kayıt ol
 router.post('/register', async (req, res) => {
   try {
-    // IP kontrolü
-    const clientIP = req.ip || req.connection.remoteAddress;
-    const isIPBlocked = await BlockedIP.findOne({ ipAddress: clientIP });
-    
-    if (isIPBlocked) {
-      return res.status(403).json({ 
-        message: 'Bu IP adresi bloklanmışdır',
-        reason: isIPBlocked.reason 
-      });
-    }
-
     const { username, email, password } = req.body;
 
-    // Kullanıcı adı kontrolü
-    const existingUsername = await User.findOne({ username });
-    if (existingUsername) {
-      return res.status(400).json({ message: 'Bu istifadəçi adı artıq istifadə olunur' });
-    }
+    const existingUser = await User.findOne({
+      $or: [{ email }, { username }]
+    });
 
-    // Email kontrolü
-    const existingEmail = await User.findOne({ email });
-    if (existingEmail) {
-      return res.status(400).json({ message: 'Bu email artıq istifadə olunur' });
+    if (existingUser) {
+      return res.status(400).json({
+        message: 'Bu email veya kullanıcı adı zaten kullanılıyor'
+      });
     }
 
     const user = new User({
       username,
       email,
       password,
-      ipAddress: clientIP,
-      lastLoginIp: clientIP,
-      lastLoginDate: new Date()
+      isAdmin: false,
+      isBlocked: false,
+      balance: 0,
+      level: 1,
+      xp: 0,
+      nextLevelXp: 100,
+      profileImage: 'https://res.cloudinary.com/dgrbjuqxl/image/upload/v1705347750/default-avatar.png'
     });
 
-    await user.save();
-    const token = await user.generateAuthToken();
-
-    res.status(201).json({ user, token });
-  } catch (error) {
-    console.error('Registration error:', error);
-    res.status(500).json({ message: 'Qeydiyyat zamanı xəta baş verdi' });
-  }
-});
-
-// Giriş yap
-router.post('/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
-    const ip = req.headers['x-forwarded-for']?.split(',')[0] || 
-               req.headers['x-real-ip'] || 
-               req.connection.remoteAddress || 
-               req.socket.remoteAddress || 
-               req.ip;
-
-    const user = await User.findOne({ email });
-    if (!user) {
-      return res.status(401).json({ message: 'Email veya şifre hatalı' });
-    }
-
-    const isMatch = await user.comparePassword(password);
-    if (!isMatch) {
-      return res.status(401).json({ message: 'Email veya şifre hatalı' });
-    }
-
-    if (user.isBlocked) {
-      return res.status(403).json({ message: 'Hesabınız engellenmiş durumda' });
-    }
-
-    // Son giriş bilgilerini güncelle
-    user.lastLoginIp = ip;
-    user.lastLoginDate = new Date();
     await user.save();
 
     const token = jwt.sign(
@@ -267,7 +183,7 @@ router.post('/login', async (req, res) => {
       { expiresIn: '24h' }
     );
 
-    res.json({
+    res.status(201).json({
       token,
       user: {
         _id: user._id,
@@ -283,8 +199,77 @@ router.post('/login', async (req, res) => {
       }
     });
   } catch (error) {
-    console.error('Giriş hatası:', error);
+    console.error('Kayıt hatası:', error);
     res.status(500).json({ message: error.message });
+  }
+});
+
+// Giriş yap
+router.post('/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    // Kullanıcıyı bul
+    const user = await User.findOne({ email });
+    if (!user) {
+      console.log('Giriş başarısız: Kullanıcı bulunamadı -', email);
+      return res.status(401).json({ 
+        message: 'Email veya şifre hatalı',
+        error: 'INVALID_CREDENTIALS'
+      });
+    }
+
+    // Şifreyi kontrol et
+    const isMatch = await user.comparePassword(password);
+    if (!isMatch) {
+      console.log('Giriş başarısız: Yanlış şifre -', email);
+      return res.status(401).json({ 
+        message: 'Email veya şifre hatalı',
+        error: 'INVALID_CREDENTIALS'
+      });
+    }
+
+    // Hesap engellenmiş mi kontrol et
+    if (user.isBlocked) {
+      console.log('Giriş başarısız: Hesap engellenmiş -', email);
+      return res.status(403).json({ 
+        message: 'Hesabınız yönetici tarafından engellenmiştir. Lütfen destek ile iletişime geçin.',
+        error: 'ACCOUNT_BLOCKED'
+      });
+    }
+
+    // Token oluştur
+    const token = jwt.sign(
+      { id: user._id },
+      process.env.JWT_SECRET || 'blackkey2024secret',
+      { expiresIn: '24h' }
+    );
+
+    console.log('Giriş başarılı:', email);
+    res.json({
+      token,
+      user: {
+        _id: user._id,
+        username: user.username,
+        email: user.email,
+        isAdmin: user.isAdmin,
+        isBlocked: user.isBlocked,
+        balance: user.balance,
+        level: user.level,
+        xp: user.xp,
+        nextLevelXp: user.nextLevelXp,
+        profileImage: user.profileImage,
+        phoneNumber: user.phoneNumber,
+        country: user.country,
+        birthDate: user.birthDate
+      }
+    });
+  } catch (error) {
+    console.error('Giriş hatası:', error);
+    res.status(500).json({ 
+      message: 'Giriş yapılırken bir hata oluştu. Lütfen daha sonra tekrar deneyin.',
+      error: 'SERVER_ERROR'
+    });
   }
 });
 

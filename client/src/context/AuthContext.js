@@ -22,29 +22,12 @@ export const AuthProvider = ({ children }) => {
   // Token'ı her request'e ekle
   api.interceptors.request.use(
     (config) => {
-      const token = localStorage.getItem('token');
       if (token) {
         config.headers['Authorization'] = `Bearer ${token}`;
       }
       return config;
     },
     (error) => {
-      return Promise.reject(error);
-    }
-  );
-
-  // Response interceptor ekle
-  api.interceptors.response.use(
-    (response) => response,
-    async (error) => {
-      if (error.response?.status === 401) {
-        // Token geçersiz veya süresi dolmuş
-        localStorage.removeItem('token');
-        setToken(null);
-        setUser(null);
-        setIsAuthenticated(false);
-        window.location.href = '/login';
-      }
       return Promise.reject(error);
     }
   );
@@ -73,10 +56,29 @@ export const AuthProvider = ({ children }) => {
         setToken(response.data.token);
         setUser(response.data.user);
         setIsAuthenticated(true);
+        setError(null);
       }
       return response.data;
     } catch (error) {
       console.error('Giriş hatası:', error);
+      let errorMessage = 'Giriş yapılırken bir hata oluştu';
+      
+      if (error.response) {
+        const { status, data } = error.response;
+        
+        switch (data.error) {
+          case 'INVALID_CREDENTIALS':
+            errorMessage = 'Email veya şifre hatalı';
+            break;
+          case 'ACCOUNT_BLOCKED':
+            errorMessage = 'Hesabınız yönetici tarafından engellenmiştir. Lütfen destek ile iletişime geçin.';
+            break;
+          default:
+            errorMessage = data.message || errorMessage;
+        }
+      }
+      
+      setError(errorMessage);
       throw error;
     }
   };
@@ -88,33 +90,36 @@ export const AuthProvider = ({ children }) => {
     setIsAuthenticated(false);
   }, []);
 
-  const checkAuth = useCallback(async () => {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setLoading(false);
-        return;
-      }
-
-      const response = await api.get('/auth/profile');
-      if (response.data) {
-        setUser(response.data);
-        setIsAuthenticated(true);
-      }
-    } catch (error) {
-      console.error('Auth check error:', error);
-      localStorage.removeItem('token');
-      setToken(null);
-      setUser(null);
+  const loadUser = useCallback(async () => {
+    if (!token) {
       setIsAuthenticated(false);
-    } finally {
-      setLoading(false);
+      return;
     }
-  }, [api]);
+    
+    try {
+      const res = await api.get('/auth/profile');
+      setUser(res.data);
+      setIsAuthenticated(true);
+    } catch (err) {
+      console.error('Kullanıcı yükleme hatası:', err);
+      setError(err.response?.data?.message || 'Kullanıcı bilgileri yüklenemedi');
+      logout();
+    }
+  }, [token, api, logout]);
 
   useEffect(() => {
-    checkAuth();
-  }, [checkAuth]);
+    const initializeAuth = async () => {
+      if (token && !user) {
+        setLoading(true);
+        await loadUser();
+        setLoading(false);
+      } else {
+        setLoading(false);
+      }
+    };
+
+    initializeAuth();
+  }, [token, user, loadUser]);
 
   const value = {
     user,
@@ -122,18 +127,14 @@ export const AuthProvider = ({ children }) => {
     loading,
     error,
     isAuthenticated,
-    api,
-    login,
     register,
+    login,
     logout,
-    checkAuth
+    loadUser,
+    api
   };
 
-  return (
-    <AuthContext.Provider value={value}>
-      {!loading && children}
-    </AuthContext.Provider>
-  );
+  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
 };
 
 export default AuthContext;

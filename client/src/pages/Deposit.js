@@ -1,8 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
 import './Deposit.css';
-import { Button } from '@mui/material';
-import { FaCreditCard, FaMobile, FaBitcoin } from 'react-icons/fa';
 
 const Deposit = () => {
   const { user, api } = useAuth();
@@ -10,14 +8,11 @@ const Deposit = () => {
   const [paymentMethod, setPaymentMethod] = useState('CREDIT_CARD');
   const [selectedFile, setSelectedFile] = useState(null);
   const [paymentInfo, setPaymentInfo] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const fetchPaymentInfo = useCallback(async () => {
-    if (!isInitialLoad && loading) return;
-    
     try {
       setLoading(true);
       const response = await api.get('/payment/info');
@@ -28,28 +23,20 @@ const Deposit = () => {
       setError('Ödəniş məlumatları yüklənərkən xəta baş verdi');
     } finally {
       setLoading(false);
-      setIsInitialLoad(false);
     }
-  }, [api, loading, isInitialLoad]);
+  }, [api]);
 
   useEffect(() => {
-    if (isInitialLoad) {
-      fetchPaymentInfo();
-    }
-  }, [fetchPaymentInfo, isInitialLoad]);
+    fetchPaymentInfo();
+  }, [fetchPaymentInfo]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError(null);
     setSuccess(false);
     
-    if (!amount || amount <= 0) {
-      setError('Zəhmət olmasa düzgün məbləğ daxil edin');
-      return;
-    }
-
-    if (!selectedFile) {
-      setError('Zəhmət olmasa ödəniş qəbzini yükləyin');
+    if (!amount || !selectedFile) {
+      setError('Zəhmət olmasa bütün sahələri doldurun və qəbz yükləyin');
       return;
     }
 
@@ -60,25 +47,21 @@ const Deposit = () => {
 
     try {
       setLoading(true);
-      const response = await api.post('/transactions/deposit', formData, {
+      await api.post('/transactions/deposit', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
         }
       });
-
-      if (response.data) {
-        setSuccess(true);
-        setAmount('');
-        setSelectedFile(null);
-        // Dosya input'unu sıfırla
-        const fileInput = document.querySelector('input[type="file"]');
-        if (fileInput) {
-          fileInput.value = '';
-        }
+      setSuccess(true);
+      setAmount('');
+      setSelectedFile(null);
+      // Dosya input'unu sıfırla
+      const fileInput = document.querySelector('input[type="file"]');
+      if (fileInput) {
+        fileInput.value = '';
       }
     } catch (err) {
-      console.error('Deposit error:', err);
-      setError(err.response?.data?.message || 'Balans artırma əməliyyatı uğursuz oldu');
+      setError('Balans artırma əməliyyatı uğursuz oldu: ' + err.response?.data?.message);
     } finally {
       setLoading(false);
     }
@@ -88,11 +71,6 @@ const Deposit = () => {
     if (e.target.files && e.target.files[0]) {
       setSelectedFile(e.target.files[0]);
     }
-  };
-
-  const handlePaymentMethodChange = (newMethod) => {
-    setPaymentMethod(newMethod);
-    fetchPaymentInfo();
   };
 
   const renderPaymentDetails = () => {
@@ -129,19 +107,8 @@ const Deposit = () => {
     }
   };
 
-  if (loading && isInitialLoad) {
-    return (
-      <div className="loading-container" style={{
-        display: 'flex',
-        justifyContent: 'center',
-        alignItems: 'center',
-        height: '100vh',
-        fontSize: '18px',
-        color: '#666'
-      }}>
-        Yüklənir...
-      </div>
-    );
+  if (loading) {
+    return <div>Yüklənir...</div>;
   }
 
   return (
@@ -185,34 +152,31 @@ const Deposit = () => {
 
       <form onSubmit={handleSubmit} className="deposit-form">
         <div className="payment-methods">
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label>
             <input
               type="radio"
               value="CREDIT_CARD"
               checked={paymentMethod === 'CREDIT_CARD'}
-              onChange={(e) => handlePaymentMethodChange(e.target.value)}
+              onChange={(e) => setPaymentMethod(e.target.value)}
             />
-            <FaCreditCard style={{ fontSize: '20px' }} />
             Kredit Kartı
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label>
             <input
               type="radio"
               value="M10"
               checked={paymentMethod === 'M10'}
-              onChange={(e) => handlePaymentMethodChange(e.target.value)}
+              onChange={(e) => setPaymentMethod(e.target.value)}
             />
-            <FaMobile style={{ fontSize: '20px' }} />
             M10
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label>
             <input
               type="radio"
               value="CRYPTO"
               checked={paymentMethod === 'CRYPTO'}
-              onChange={(e) => handlePaymentMethodChange(e.target.value)}
+              onChange={(e) => setPaymentMethod(e.target.value)}
             />
-            <FaBitcoin style={{ fontSize: '20px' }} />
             Kripto
           </label>
         </div>
@@ -242,24 +206,9 @@ const Deposit = () => {
           />
         </div>
 
-        <Button
-          variant="contained"
-          color="primary"
-          fullWidth
-          type="submit"
-          disabled={loading}
-          sx={{
-            mt: 2,
-            py: 1.5,
-            fontSize: '1rem',
-            backgroundColor: '#2196f3',
-            '&:hover': {
-              backgroundColor: '#1976d2'
-            }
-          }}
-        >
+        <button type="submit" className="submit-btn" disabled={loading}>
           {loading ? 'YÜKLƏNIR...' : 'BALANS ARTIR'}
-        </Button>
+        </button>
       </form>
     </div>
   );

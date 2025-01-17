@@ -1,341 +1,653 @@
-import React, { useState, useEffect } from 'react';
-import {
-  Container,
-  Paper,
-  Typography,
-  Table,
-  TableBody,
-  TableCell,
-  TableContainer,
-  TableHead,
-  TableRow,
-  Button,
-  Box,
-  Alert,
-  CircularProgress,
-  Tabs,
-  Tab,
-  Grid
-} from '@mui/material';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../context/AuthContext';
+import { FaUsers, FaMoneyBillWave, FaCreditCard, FaCheckCircle, FaTimesCircle, FaCog, FaChartBar } from 'react-icons/fa';
+import { 
+  Table, 
+  TableBody, 
+  TableCell, 
+  TableContainer, 
+  TableHead, 
+  TableRow, 
+  Paper, 
+  Button, 
+  Chip, 
+  Typography,
+  Modal,
+  Box,
+  TextField,
+  IconButton
+} from '@mui/material';
+import CheckCircleIcon from '@mui/icons-material/CheckCircle';
+import PendingIcon from '@mui/icons-material/Pending';
+import CancelIcon from '@mui/icons-material/Cancel';
+import EditIcon from '@mui/icons-material/Edit';
+import PaymentInfoManager from '../components/PaymentInfoManager';
+import './AdminPanel.css';
+
+const modalStyle = {
+  position: 'absolute',
+  top: '50%',
+  left: '50%',
+  transform: 'translate(-50%, -50%)',
+  bgcolor: 'background.paper',
+  boxShadow: 24,
+  p: 4,
+  maxWidth: '90vw',
+  maxHeight: '90vh',
+  overflow: 'auto'
+};
 
 const AdminPanel = () => {
   const { api } = useAuth();
-  const [activeTab, setActiveTab] = useState(0);
+  const [activeTab, setActiveTab] = useState('USERS');
   const [users, setUsers] = useState([]);
   const [deposits, setDeposits] = useState([]);
   const [withdrawals, setWithdrawals] = useState([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [success, setSuccess] = useState(null);
-  const [stats, setStats] = useState({
-    totalUsers: 0,
-    totalInvestments: 0,
-    activeInvestments: 0,
-    totalInvestmentAmount: 0
+  const [selectedImage, setSelectedImage] = useState(null);
+  const [fakeStats, setFakeStats] = useState({
+    totalUsers: 5698,
+    activeUsers: 1756,
+    totalInvestment: 96854,
+    totalPayout: 25356
+  });
+  const [packageSettings, setPackageSettings] = useState([]);
+  const [editingPackage, setEditingPackage] = useState(null);
+  const [editForm, setEditForm] = useState({
+    interestRate: '',
+    minAmount: '',
+    maxAmount: ''
   });
 
-  const fetchUsers = async () => {
+  const fetchData = useCallback(async () => {
     try {
-      setLoading(true);
-      const response = await api.get('/admin/users');
-      setUsers(response.data);
+      const [usersRes, depositsRes, withdrawalsRes] = await Promise.all([
+        api.get('/admin/users'),
+        api.get('/admin/deposits'),
+        api.get('/admin/withdrawals')
+      ]);
+
+      setUsers(usersRes.data);
+      setDeposits(depositsRes.data);
+      setWithdrawals(withdrawalsRes.data);
+    } catch (error) {
+      console.error('Data fetching error:', error.response?.data || error);
+    }
+  }, [api]);
+
+  const loadFakeStats = useCallback(async () => {
+    try {
+      const res = await api.get('/admin/fake-stats');
+      if (res.data) {
+        setFakeStats(res.data);
+      }
     } catch (err) {
-      setError(err.response?.data?.message || 'Kullanicilar yuklenirken bir hata olustu');
-    } finally {
-      setLoading(false);
+      console.error('Fake istatistikler yüklenirken hata:', err);
+    }
+  }, [api]);
+
+  useEffect(() => {
+    fetchData();
+    loadFakeStats();
+    const interval = setInterval(fetchData, 30000);
+    return () => clearInterval(interval);
+  }, [fetchData, loadFakeStats]);
+
+  const handleFakeStatsUpdate = async (e) => {
+    e.preventDefault();
+    try {
+      const response = await api.put('/admin/fake-stats', fakeStats);
+      if (response.data) {
+        setFakeStats(response.data);
+        alert('İstatistikler başarıyla güncellendi');
+      }
+    } catch (err) {
+      console.error('İstatistikler güncellenirken hata:', err);
+      alert('İstatistikler güncellenirken bir hata oluştu: ' + (err.response?.data?.message || err.message));
     }
   };
 
-  const fetchDeposits = async () => {
+  const handleAction = async (type, id, action) => {
     try {
-      setLoading(true);
-      const response = await api.get('/admin/deposits');
-      setDeposits(response.data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Para yatirma islemleri yuklenirken bir hata olustu');
-    } finally {
-      setLoading(false);
+      let response;
+      if (type === 'DEPOSIT') {
+        response = await api.post(`/admin/deposits/${id}/${action.toLowerCase()}`);
+      } else if (type === 'WITHDRAWAL') {
+        response = await api.post(`/admin/withdrawals/${id}/${action.toLowerCase()}`);
+      } else if (type === 'USER') {
+        response = await api.post(`/admin/users/${id}/block`, {
+          action: action.toLowerCase()
+        });
+      }
+      
+      if (response?.data?.message) {
+        alert(response.data.message);
+      } else if (type === 'USER') {
+        alert(action === 'BLOCK' ? 'Kullanıcı engellendi' : 'Kullanıcının engeli kaldırıldı');
+      } else {
+        alert(action === 'APPROVE' ? 'İşlem onaylandı' : 'İşlem reddedildi');
+      }
+      
+      fetchData();
+    } catch (error) {
+      console.error('Action error:', error);
+      alert('Hata: ' + (error.response?.data?.message || 'İşlem sırasında bir hata oluştu'));
     }
   };
 
-  const fetchWithdrawals = async () => {
-    try {
-      setLoading(true);
-      const response = await api.get('/admin/withdrawals');
-      setWithdrawals(response.data);
-    } catch (err) {
-      setError(err.response?.data?.message || 'Para cekme islemleri yuklenirken bir hata olustu');
-    } finally {
-      setLoading(false);
+  const formatDate = (dateString) => {
+    return new Date(dateString).toLocaleString('tr-TR');
+  };
+
+  const getStatusText = (status) => {
+    switch (status) {
+      case 'PENDING':
+        return 'Gözləmədə';
+      case 'APPROVED':
+        return 'Təsdiqləndi';
+      case 'REJECTED':
+        return 'Rədd edildi';
+      default:
+        return status;
     }
   };
 
-  const fetchStats = async () => {
-    try {
-      const response = await api.get('/admin/stats');
-      setStats(response.data);
-    } catch (err) {
-      console.error('Istatistikler yuklenirken hata:', err);
+  const getStatusColor = (status) => {
+    switch (status) {
+      case 'PENDING':
+        return 'warning';
+      case 'APPROVED':
+        return 'success';
+      case 'REJECTED':
+        return 'error';
+      default:
+        return 'default';
     }
   };
 
-  const handleBlockUser = async (userId, isBlocked) => {
-    try {
-      setLoading(true);
-      await api.put(`/admin/users/${userId}/block`, { isBlocked });
-      setSuccess(`Kullanici ${isBlocked ? 'engellendi' : 'engeli kaldirildi'}`);
-      fetchUsers();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Islem sirasinda bir hata olustu');
-    } finally {
-      setLoading(false);
+  const getStatusIcon = (status) => {
+    switch (status) {
+      case 'PENDING':
+        return <PendingIcon />;
+      case 'APPROVED':
+        return <CheckCircleIcon />;
+      case 'REJECTED':
+        return <CancelIcon />;
+      default:
+        return null;
     }
   };
 
-  const handleDepositAction = async (depositId, action) => {
-    try {
-      setLoading(true);
-      await api.post(`/admin/deposits/${depositId}/${action}`);
-      setSuccess(`Para yatirma islemi ${action === 'approve' ? 'onaylandi' : 'reddedildi'}`);
-      fetchDeposits();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Islem sirasinda bir hata olustu');
-    } finally {
-      setLoading(false);
+  const renderWithdrawalDetails = (withdrawal) => {
+    console.log('Complete withdrawal data:', withdrawal);
+    console.log('Transaction details:', withdrawal.transactionDetails);
+
+    const method = withdrawal.paymentMethod;
+    const details = withdrawal.transactionDetails || {};
+
+    if (!details || Object.keys(details).length === 0) {
+      return 'Detay bulunmuyor';
     }
+
+    if (method === 'CREDIT_CARD') {
+      return (
+        <>
+          <Typography variant="body2">Banka: {details.bankName || withdrawal.bankName || 'Belirtilmemiş'}</Typography>
+          <Typography variant="body2">Hesap Sahibi: {details.accountHolder || withdrawal.accountHolder || 'Belirtilmemiş'}</Typography>
+          <Typography variant="body2">Kart No: {details.cardNumber || withdrawal.cardNumber || 'Belirtilmemiş'}</Typography>
+        </>
+      );
+    } else if (method === 'M10') {
+      return (
+        <>
+          <Typography variant="body2">M10 Hesab: {details.m10AccountNumber || withdrawal.m10AccountNumber || 'Belirtilmemiş'}</Typography>
+        </>
+      );
+    } else if (method === 'CRYPTO') {
+      return (
+        <>
+          <Typography variant="body2">Adres: {details.cryptoAddress || withdrawal.cryptoAddress || 'Belirtilmemiş'}</Typography>
+          <Typography variant="body2">Ağ: {details.cryptoNetwork || withdrawal.cryptoNetwork || 'Belirtilmemiş'}</Typography>
+        </>
+      );
+    }
+
+    return 'Bilinmeyen ödeme yöntemi';
   };
 
-  const handleWithdrawalAction = async (withdrawalId, action) => {
-    try {
-      setLoading(true);
-      await api.post(`/admin/withdrawals/${withdrawalId}/${action}`);
-      setSuccess(`Para cekme islemi ${action === 'approve' ? 'onaylandi' : 'reddedildi'}`);
-      fetchWithdrawals();
-    } catch (err) {
-      setError(err.response?.data?.message || 'Islem sirasinda bir hata olustu');
-    } finally {
-      setLoading(false);
-    }
+  const handleCloseImage = () => {
+    setSelectedImage(null);
   };
 
   useEffect(() => {
-    fetchUsers();
-    fetchDeposits();
-    fetchWithdrawals();
-    fetchStats();
-  }, []);
+    const loadPackageSettings = async () => {
+      try {
+        const response = await api.get('/admin/package-settings');
+        setPackageSettings(response.data);
+      } catch (error) {
+        console.error('Kasa ayarları yüklenirken hata:', error);
+      }
+    };
+    loadPackageSettings();
+  }, [api]);
 
-  const handleTabChange = (event, newValue) => {
-    setActiveTab(newValue);
-    setError(null);
-    setSuccess(null);
+  const handleUpdatePackage = async (type) => {
+    try {
+      await api.put(`/admin/package-settings/${type}`, editForm);
+      const response = await api.get('/admin/package-settings');
+      setPackageSettings(response.data);
+      setEditingPackage(null);
+      setEditForm({
+        interestRate: '',
+        minAmount: '',
+        maxAmount: ''
+      });
+    } catch (error) {
+      console.error('Kasa ayarları güncellenirken hata:', error);
+    }
   };
 
-  const renderUsers = () => (
-    <TableContainer>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Kullanici Adi</TableCell>
-            <TableCell>Email</TableCell>
-            <TableCell>Bakiye</TableCell>
-            <TableCell>Durum</TableCell>
-            <TableCell>Islemler</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {users.map((user) => (
-            <TableRow key={user._id}>
-              <TableCell>{user.username}</TableCell>
-              <TableCell>{user.email}</TableCell>
-              <TableCell>{user.balance} AZN</TableCell>
-              <TableCell>{user.isBlocked ? 'Engelli' : 'Aktif'}</TableCell>
-              <TableCell>
-                <Button
-                  variant="contained"
-                  color={user.isBlocked ? 'success' : 'error'}
-                  onClick={() => handleBlockUser(user._id, !user.isBlocked)}
-                  disabled={loading}
-                >
-                  {user.isBlocked ? 'Engeli Kaldir' : 'Engelle'}
-                </Button>
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-
-  const renderDeposits = () => (
-    <TableContainer>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Kullanici</TableCell>
-            <TableCell>Miktar</TableCell>
-            <TableCell>Tarih</TableCell>
-            <TableCell>Durum</TableCell>
-            <TableCell>Islemler</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {deposits.map((deposit) => (
-            <TableRow key={deposit._id}>
-              <TableCell>{deposit.user?.username}</TableCell>
-              <TableCell>{deposit.amount} AZN</TableCell>
-              <TableCell>{new Date(deposit.createdAt).toLocaleString()}</TableCell>
-              <TableCell>{deposit.status}</TableCell>
-              <TableCell>
-                {deposit.status === 'PENDING' && (
-                  <>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={() => handleDepositAction(deposit._id, 'approve')}
-                      disabled={loading}
-                      sx={{ mr: 1 }}
-                    >
-                      Onayla
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      onClick={() => handleDepositAction(deposit._id, 'reject')}
-                      disabled={loading}
-                    >
-                      Reddet
-                    </Button>
-                  </>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-
-  const renderWithdrawals = () => (
-    <TableContainer>
-      <Table>
-        <TableHead>
-          <TableRow>
-            <TableCell>Kullanici</TableCell>
-            <TableCell>Miktar</TableCell>
-            <TableCell>Tarih</TableCell>
-            <TableCell>Durum</TableCell>
-            <TableCell>Islemler</TableCell>
-          </TableRow>
-        </TableHead>
-        <TableBody>
-          {withdrawals.map((withdrawal) => (
-            <TableRow key={withdrawal._id}>
-              <TableCell>{withdrawal.user?.username}</TableCell>
-              <TableCell>{withdrawal.amount} AZN</TableCell>
-              <TableCell>{new Date(withdrawal.createdAt).toLocaleString()}</TableCell>
-              <TableCell>{withdrawal.status}</TableCell>
-              <TableCell>
-                {withdrawal.status === 'PENDING' && (
-                  <>
-                    <Button
-                      variant="contained"
-                      color="success"
-                      onClick={() => handleWithdrawalAction(withdrawal._id, 'approve')}
-                      disabled={loading}
-                      sx={{ mr: 1 }}
-                    >
-                      Onayla
-                    </Button>
-                    <Button
-                      variant="contained"
-                      color="error"
-                      onClick={() => handleWithdrawalAction(withdrawal._id, 'reject')}
-                      disabled={loading}
-                    >
-                      Reddet
-                    </Button>
-                  </>
-                )}
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </TableContainer>
-  );
-
   return (
-    <Container maxWidth="lg">
-      <Box sx={{ mt: 4 }}>
-        <Paper sx={{ p: 3 }}>
-          <Typography variant="h4" gutterBottom>
-            Admin Paneli
-          </Typography>
+    <div className="admin-panel">
+      <h1>Admin Panel</h1>
 
-          <Grid container spacing={3} sx={{ mb: 4 }}>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h6">{stats.totalUsers}</Typography>
-                <Typography color="textSecondary">Toplam Kullanici</Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h6">{stats.totalInvestments}</Typography>
-                <Typography color="textSecondary">Toplam Yatirim</Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h6">{stats.activeInvestments}</Typography>
-                <Typography color="textSecondary">Aktif Yatirim</Typography>
-              </Paper>
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <Paper sx={{ p: 2, textAlign: 'center' }}>
-                <Typography variant="h6">{stats.totalInvestmentAmount} AZN</Typography>
-                <Typography color="textSecondary">Toplam Yatirim Tutari</Typography>
-              </Paper>
-            </Grid>
-          </Grid>
+      <div className="stats-container">
+        <div className="stat-box">
+          <h3>Ümumi İstifadəçi</h3>
+          <p>{users.length}</p>
+        </div>
+        <div className="stat-box">
+          <h3>Ümumi Sərmayə</h3>
+          <p>{users.reduce((total, user) => total + (user.balance > 0 ? 1 : 0), 0)}</p>
+        </div>
+        <div className="stat-box">
+          <h3>Aktiv Sərmayə</h3>
+          <p>{users.reduce((total, user) => total + (user.balance > 0 ? 1 : 0), 0)}</p>
+        </div>
+        <div className="stat-box">
+          <h3>Ümumi Sərmayə Məbləği</h3>
+          <p>{users.reduce((total, user) => total + (Number(user.balance) || 0), 0)
+            .toLocaleString('tr-TR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} AZN</p>
+        </div>
+      </div>
 
-          {error && (
-            <Alert severity="error" sx={{ mb: 2 }}>
-              {error}
-            </Alert>
+      <div className="tabs">
+        <button
+          className={activeTab === 'USERS' ? 'active' : ''}
+          onClick={() => setActiveTab('USERS')}
+        >
+          <FaUsers /> İstifadəçilər
+        </button>
+        <button
+          className={activeTab === 'DEPOSITS' ? 'active' : ''}
+          onClick={() => setActiveTab('DEPOSITS')}
+        >
+          <FaMoneyBillWave /> Balans Artırımı ({deposits.filter(d => d.status === 'PENDING').length})
+        </button>
+        <button
+          className={activeTab === 'WITHDRAWALS' ? 'active' : ''}
+          onClick={() => setActiveTab('WITHDRAWALS')}
+        >
+          <FaMoneyBillWave /> Pul Çəkmə ({withdrawals.filter(w => w.status === 'PENDING').length})
+        </button>
+        <button
+          className={activeTab === 'PAYMENT_INFO' ? 'active' : ''}
+          onClick={() => setActiveTab('PAYMENT_INFO')}
+        >
+          <FaCog /> Ödəniş Məlumatları
+        </button>
+        <button
+          className={activeTab === 'STATS' ? 'active' : ''}
+          onClick={() => setActiveTab('STATS')}
+        >
+          <FaChartBar /> Statistikalar
+        </button>
+        <button
+          className={activeTab === 'PACKAGE_SETTINGS' ? 'active' : ''}
+          onClick={() => setActiveTab('PACKAGE_SETTINGS')}
+        >
+          <EditIcon /> Kasa Ayarları
+        </button>
+      </div>
+
+      <div className="content">
+        {activeTab === 'USERS' && (
+          <table>
+            <thead>
+              <tr>
+                <th>İstifadəçi Adı</th>
+                <th>Email</th>
+                <th>Balans</th>
+                <th>Səviyyə</th>
+                <th>Admin</th>
+                <th>Vəziyyət</th>
+                <th>Əməliyyatlar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {users.map(user => (
+                <tr key={user._id}>
+                  <td>{user.username}</td>
+                  <td>{user.email}</td>
+                  <td>{user.balance} AZN</td>
+                  <td>{user.level}</td>
+                  <td>{user.isAdmin ? 'Bəli' : 'Xeyr'}</td>
+                  <td>{user.isBlocked ? 'Bloklanıb' : 'Aktiv'}</td>
+                  <td>
+                    {user.isBlocked ? (
+                      <button 
+                        onClick={() => handleAction('USER', user._id, 'unblock')} 
+                        className="unblock-btn"
+                      >
+                        <FaCheckCircle /> Bloku Qaldır
+                      </button>
+                    ) : (
+                      <button 
+                        onClick={() => handleAction('USER', user._id, 'block')} 
+                        className="block-btn"
+                      >
+                        <FaTimesCircle /> Blokla
+                      </button>
+                    )}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {activeTab === 'DEPOSITS' && (
+          <table>
+            <thead>
+              <tr>
+                <th>İstifadəçi</th>
+                <th>Məbləğ</th>
+                <th>Ödəniş Üsulu</th>
+                <th>Tarix</th>
+                <th>Qəbz</th>
+                <th>Əməliyyatlar</th>
+              </tr>
+            </thead>
+            <tbody>
+              {deposits.map(deposit => (
+                <tr key={deposit._id}>
+                  <td>{deposit.user?.username}</td>
+                  <td>{deposit.amount} AZN</td>
+                  <td>{deposit.paymentMethod}</td>
+                  <td>{formatDate(deposit.createdAt)}</td>
+                  <td>
+                    {deposit.receiptUrl && (
+                      <button 
+                        className="view-receipt-btn"
+                        onClick={() => {
+                          const cloudinaryUrl = deposit.receiptUrl.includes('https://res.cloudinary.com/') 
+                            ? deposit.receiptUrl.substring(deposit.receiptUrl.indexOf('https://res.cloudinary.com/'))
+                            : deposit.receiptUrl;
+                          console.log('Opening image:', cloudinaryUrl);
+                          setSelectedImage(cloudinaryUrl);
+                        }}
+                      >
+                        <FaCreditCard /> Göstər
+                      </button>
+                    )}
+                  </td>
+                  <td>
+                    {deposit.status === 'PENDING' && (
+                      <>
+                        <button onClick={() => handleAction('DEPOSIT', deposit._id, 'APPROVE')} className="approve-btn">
+                          <FaCheckCircle /> Təsdiqlə
+                        </button>
+                        <button onClick={() => handleAction('DEPOSIT', deposit._id, 'REJECT')} className="reject-btn">
+                          <FaTimesCircle /> Rədd Et
+                        </button>
+                      </>
+                    )}
+                    {deposit.status === 'APPROVED' && <span className="status approved">Təsdiqləndi</span>}
+                    {deposit.status === 'REJECTED' && <span className="status rejected">Rədd edildi</span>}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        )}
+
+        {activeTab === 'WITHDRAWALS' && (
+          <TableContainer component={Paper}>
+            <Table>
+              <TableHead>
+                <TableRow>
+                  <TableCell>Tarix</TableCell>
+                  <TableCell>İstifadəçi</TableCell>
+                  <TableCell>Məbləğ</TableCell>
+                  <TableCell>Ödəniş Üsulu</TableCell>
+                  <TableCell>Detaylar</TableCell>
+                  <TableCell>Vəziyyət</TableCell>
+                  <TableCell>Əməliyyatlar</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {withdrawals.map((withdrawal) => (
+                  <TableRow key={withdrawal._id}>
+                    <TableCell>{new Date(withdrawal.createdAt).toLocaleString()}</TableCell>
+                    <TableCell>{withdrawal.user?.username || 'Bilinmeyen İstifadəçi'}</TableCell>
+                    <TableCell>{withdrawal.amount} AZN</TableCell>
+                    <TableCell>
+                      {(withdrawal.withdrawMethod || withdrawal.paymentMethod) === 'CREDIT_CARD' ? 'Karta Köçürmə' :
+                       (withdrawal.withdrawMethod || withdrawal.paymentMethod) === 'm10' ? 'M10' :
+                       (withdrawal.withdrawMethod || withdrawal.paymentMethod) === 'CRYPTO' ? 'Kripto Para' :
+                       withdrawal.withdrawMethod || withdrawal.paymentMethod}
+                    </TableCell>
+                    <TableCell>{renderWithdrawalDetails(withdrawal)}</TableCell>
+                    <TableCell>
+                      <Chip
+                        label={getStatusText(withdrawal.status)}
+                        color={getStatusColor(withdrawal.status)}
+                        icon={getStatusIcon(withdrawal.status)}
+                      />
+                    </TableCell>
+                    <TableCell>
+                      {withdrawal.status === 'PENDING' && (
+                        <>
+                          <Button
+                            variant="contained"
+                            color="success"
+                            size="small"
+                            onClick={() => handleAction('WITHDRAWAL', withdrawal._id, 'APPROVE')}
+                            sx={{ mr: 1 }}
+                          >
+                            Təsdiqlə
+                          </Button>
+                          <Button
+                            variant="contained"
+                            color="error"
+                            size="small"
+                            onClick={() => handleAction('WITHDRAWAL', withdrawal._id, 'REJECT')}
+                          >
+                            Rədd Et
+                          </Button>
+                        </>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        )}
+
+        {activeTab === 'PAYMENT_INFO' && (
+          <PaymentInfoManager onUpdate={fetchData} />
+        )}
+
+        {activeTab === 'STATS' && (
+          <div className="stats-form">
+            <h2>Görünən Statistika Yeniləməsi</h2>
+            <p className="info-text">Bu sahədəki dəyişikliklər yalnız Yan paneldə görünən statistikaları təsir edir, real məlumatları dəyişdirmir.</p>
+            
+            <form onSubmit={handleFakeStatsUpdate}>
+              <div className="form-group">
+                <label>Görünən Ümumi İstifadəçi:</label>
+                <input
+                  type="number"
+                  value={fakeStats.totalUsers}
+                  onChange={(e) => setFakeStats({ ...fakeStats, totalUsers: Number(e.target.value) })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Görünən Aktiv İstifadəçi:</label>
+                <input
+                  type="number"
+                  value={fakeStats.activeUsers}
+                  onChange={(e) => setFakeStats({ ...fakeStats, activeUsers: Number(e.target.value) })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Görünən Ümumi Sərmayə (manat):</label>
+                <input
+                  type="number"
+                  value={fakeStats.totalInvestment}
+                  onChange={(e) => setFakeStats({ ...fakeStats, totalInvestment: Number(e.target.value) })}
+                />
+              </div>
+
+              <div className="form-group">
+                <label>Görünən Ümumi Ödəniş (manat):</label>
+                <input
+                  type="number"
+                  value={fakeStats.totalPayout}
+                  onChange={(e) => setFakeStats({ ...fakeStats, totalPayout: Number(e.target.value) })}
+                />
+              </div>
+
+              <button type="submit" className="update-btn">
+                <FaChartBar /> Görünən Statistikaları Yenilə
+              </button>
+            </form>
+          </div>
+        )}
+
+        {activeTab === 'PACKAGE_SETTINGS' && (
+          <div className="package-settings">
+            <Typography variant="h6" gutterBottom>
+              Kasa Ayarları
+            </Typography>
+            <TableContainer component={Paper}>
+              <Table>
+                <TableHead>
+                  <TableRow>
+                    <TableCell>Kasa Tipi</TableCell>
+                    <TableCell>Faiz Oranı (%)</TableCell>
+                    <TableCell>Min. Miktar</TableCell>
+                    <TableCell>Max. Miktar</TableCell>
+                    <TableCell>İşlemler</TableCell>
+                  </TableRow>
+                </TableHead>
+                <TableBody>
+                  {packageSettings.map((pkg) => (
+                    <TableRow key={pkg.type}>
+                      <TableCell>{pkg.type}</TableCell>
+                      <TableCell>
+                        {editingPackage === pkg.type ? (
+                          <TextField
+                            type="number"
+                            value={editForm.interestRate}
+                            onChange={(e) => setEditForm({ ...editForm, interestRate: e.target.value })}
+                            size="small"
+                          />
+                        ) : (
+                          `${pkg.interestRate}%`
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingPackage === pkg.type ? (
+                          <TextField
+                            type="number"
+                            value={editForm.minAmount}
+                            onChange={(e) => setEditForm({ ...editForm, minAmount: e.target.value })}
+                            size="small"
+                          />
+                        ) : (
+                          pkg.minAmount
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingPackage === pkg.type ? (
+                          <TextField
+                            type="number"
+                            value={editForm.maxAmount}
+                            onChange={(e) => setEditForm({ ...editForm, maxAmount: e.target.value })}
+                            size="small"
+                          />
+                        ) : (
+                          pkg.maxAmount
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        {editingPackage === pkg.type ? (
+                          <>
+                            <Button
+                              variant="contained"
+                              color="primary"
+                              size="small"
+                              onClick={() => handleUpdatePackage(pkg.type)}
+                            >
+                              Kaydet
+                            </Button>
+                            <Button
+                              variant="outlined"
+                              color="secondary"
+                              size="small"
+                              onClick={() => setEditingPackage(null)}
+                              sx={{ ml: 1 }}
+                            >
+                              İptal
+                            </Button>
+                          </>
+                        ) : (
+                          <IconButton
+                            color="primary"
+                            onClick={() => {
+                              setEditingPackage(pkg.type);
+                              setEditForm({
+                                interestRate: pkg.interestRate,
+                                minAmount: pkg.minAmount,
+                                maxAmount: pkg.maxAmount
+                              });
+                            }}
+                          >
+                            <EditIcon />
+                          </IconButton>
+                        )}
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Image Modal */}
+      <Modal
+        open={!!selectedImage}
+        onClose={handleCloseImage}
+        aria-labelledby="receipt-modal"
+        aria-describedby="receipt-image"
+      >
+        <Box sx={modalStyle}>
+          {selectedImage && (
+            <img 
+              src={selectedImage} 
+              alt="Receipt" 
+              style={{ maxWidth: '100%', maxHeight: '80vh', objectFit: 'contain' }}
+            />
           )}
-
-          {success && (
-            <Alert severity="success" sx={{ mb: 2 }}>
-              {success}
-            </Alert>
-          )}
-
-          <Box sx={{ borderBottom: 1, borderColor: 'divider', mb: 2 }}>
-            <Tabs value={activeTab} onChange={handleTabChange}>
-              <Tab label="Kullanicilar" />
-              <Tab label="Para Yatirma Islemleri" />
-              <Tab label="Para Cekme Islemleri" />
-            </Tabs>
-          </Box>
-
-          {loading ? (
-            <Box sx={{ display: 'flex', justifyContent: 'center', p: 3 }}>
-              <CircularProgress />
-            </Box>
-          ) : (
-            <Box>
-              {activeTab === 0 && renderUsers()}
-              {activeTab === 1 && renderDeposits()}
-              {activeTab === 2 && renderWithdrawals()}
-            </Box>
-          )}
-        </Paper>
-      </Box>
-    </Container>
+        </Box>
+      </Modal>
+    </div>
   );
 };
 
-export default AdminPanel; 
+export default AdminPanel;

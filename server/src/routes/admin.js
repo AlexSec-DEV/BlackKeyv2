@@ -48,28 +48,6 @@ router.get('/users', auth, isAdmin, async (req, res) => {
   }
 });
 
-// Kullanıcı engelleme/engel kaldırma
-router.put('/users/:userId/block', auth, isAdmin, async (req, res) => {
-  console.log('PUT /admin/users/:userId/block endpoint hit');
-  try {
-    const { userId } = req.params;
-    const { isBlocked } = req.body;
-
-    const user = await User.findById(userId);
-    if (!user) {
-      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
-    }
-
-    user.isBlocked = isBlocked;
-    await user.save();
-
-    res.json({ message: isBlocked ? 'Kullanıcı engellendi' : 'Kullanıcı engeli kaldırıldı', user });
-  } catch (err) {
-    console.error('Error updating user block status:', err);
-    res.status(500).json({ message: 'Server error', error: err.message });
-  }
-});
-
 // İstatistikleri getir
 router.get('/stats', auth, isAdmin, async (req, res) => {
   console.log('GET /admin/stats endpoint hit');
@@ -246,6 +224,41 @@ router.put('/fake-stats', auth, isAdmin, async (req, res) => {
   } catch (err) {
     console.error('Fake stats update error:', err);
     res.status(500).json({ message: 'Server error' });
+  }
+});
+
+// Kullanıcı engelleme/engel kaldırma
+router.post('/users/:userId/block', auth, isAdmin, async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const { action } = req.body;
+
+    const user = await User.findById(userId);
+    if (!user) {
+      return res.status(404).json({ message: 'Kullanıcı bulunamadı' });
+    }
+
+    // Admin kendini engelleyemez
+    if (user.isAdmin) {
+      return res.status(400).json({ message: 'Admin kullanıcısı engellenemez' });
+    }
+
+    if (action === 'block') {
+      user.isBlocked = true;
+    } else if (action === 'unblock') {
+      user.isBlocked = false;
+    } else {
+      return res.status(400).json({ message: 'Geçersiz işlem' });
+    }
+
+    await user.save();
+    res.json({ 
+      message: action === 'block' ? 'Kullanıcı engellendi' : 'Kullanıcı engeli kaldırıldı',
+      user 
+    });
+  } catch (error) {
+    console.error('User block/unblock error:', error);
+    res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
 

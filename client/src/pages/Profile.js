@@ -60,19 +60,11 @@ const Profile = () => {
       const response = await api.post('/auth/profile/image', formData, {
         headers: {
           'Content-Type': 'multipart/form-data'
-        },
-        onUploadProgress: (progressEvent) => {
-          const percentCompleted = Math.round((progressEvent.loaded * 100) / progressEvent.total);
-          console.log('Upload progress:', percentCompleted);
         }
       });
-      
       console.log('Upload response:', response.data);
-      await loadUser(); // Kullanıcı bilgilerini yenile
+      await loadUser();
       setSuccess('Profil resmi başarıyla güncellendi');
-      
-      // Input'u temizle
-      event.target.value = '';
     } catch (err) {
       console.error('Upload error:', err);
       setError(err.response?.data?.message || 'Resim yüklenirken bir hata oluştu');
