@@ -186,16 +186,14 @@ const HowToEarn = () => {
               }}
             >
               {/* Geri ödənilən -> İstifadəçi */}
-              <line
-                x1="30%"
-                y1="100px"
-                x2="70%"
-                y2="100px"
+              <path
+                d="M 300,75 Q 450,75 600,75"
                 stroke="#4CAF50"
                 strokeWidth="2"
+                fill="none"
               />
 
-              {/* İstifadəçi -> Kasa (dikey) */}
+              {/* İstifadəçi -> Kasa */}
               <line
                 x1="80%"
                 y1="120px"
@@ -205,7 +203,7 @@ const HowToEarn = () => {
                 strokeWidth="2"
               />
 
-              {/* Kasa -> Mutexessis İnvestorlar (dikey) */}
+              {/* Kasa -> Mutexessis İnvestorlar */}
               <line
                 x1="80%"
                 y1="250px"
@@ -216,31 +214,49 @@ const HowToEarn = () => {
               />
 
               {/* Mutexessis İnvestorlar -> Kripto ve Səhimlər */}
-              <line
-                x1="80%"
-                y1="360px"
-                x2="80%"
-                y2="400px"
+              <path
+                d="M 800,360 Q 800,400 700,400 L 500,400"
                 stroke="#4CAF50"
                 strokeWidth="2"
+                fill="none"
               />
-              <line
-                x1="60%"
-                y1="400px"
-                x2="100%"
-                y2="400px"
+              <path
+                d="M 800,360 Q 800,400 900,400 L 1000,400"
                 stroke="#4CAF50"
                 strokeWidth="2"
+                fill="none"
               />
 
-              {/* Alt gruplar -> Əldə olunan gəlir */}
-              <line
-                x1="80%"
-                y1="450px"
-                x2="80%"
-                y2="500px"
+              {/* Kripto -> Əldə olunan gəlir */}
+              <path
+                d="M 600,450 Q 600,500 800,500"
                 stroke="#4CAF50"
                 strokeWidth="2"
+                fill="none"
+              />
+
+              {/* Səhimlər -> Əldə olunan gəlir */}
+              <path
+                d="M 1000,450 Q 1000,500 800,500"
+                stroke="#4CAF50"
+                strokeWidth="2"
+                fill="none"
+              />
+
+              {/* Açıklama kutusu -> Geri ödənilən */}
+              <path
+                d="M 300,400 Q 300,300 300,75"
+                stroke="#4CAF50"
+                strokeWidth="2"
+                fill="none"
+              />
+
+              {/* Açıklama kutusu -> Əldə olunan gəlir */}
+              <path
+                d="M 300,400 Q 300,500 800,500"
+                stroke="#4CAF50"
+                strokeWidth="2"
+                fill="none"
               />
             </svg>
           </Box>
