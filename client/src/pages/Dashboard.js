@@ -84,7 +84,7 @@ const Dashboard = () => {
   useEffect(() => {
     const loadPackageSettings = async () => {
       try {
-        const response = await api.get('/admin/package-settings');
+        const response = await api.get('/investments/packages');
         if (response.data && Array.isArray(response.data)) {
           // Kasa ayarlarını UI için düzenle
           const formattedSettings = response.data.map(setting => ({

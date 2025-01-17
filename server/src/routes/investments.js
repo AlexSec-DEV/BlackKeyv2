@@ -147,4 +147,15 @@ router.post('/', auth, async (req, res) => {
   }
 });
 
+// Kasa ayarlarını getir
+router.get('/packages', auth, async (req, res) => {
+  try {
+    const settings = await PackageSettings.find().sort({ type: 1 });
+    res.json(settings);
+  } catch (error) {
+    console.error('Kasa ayarları getirilirken hata:', error);
+    res.status(500).json({ message: 'Kasa ayarları getirilirken bir hata oluştu' });
+  }
+});
+
 module.exports = router; 
