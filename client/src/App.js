@@ -15,6 +15,7 @@ import { AuthProvider } from './context/AuthContext';
 import PrivateRoute from './components/PrivateRoute';
 import { useAuth } from './context/AuthContext';
 import PaymentHistory from './pages/PaymentHistory';
+import HowToEarn from './pages/HowToEarn';
 
 const theme = createTheme({
   palette: {
@@ -99,6 +100,14 @@ function App() {
               element={
                 <PrivateRoute>
                   <PaymentHistory />
+                </PrivateRoute>
+              }
+            />
+            <Route
+              path="/how-to-earn"
+              element={
+                <PrivateRoute>
+                  <HowToEarn />
                 </PrivateRoute>
               }
             />

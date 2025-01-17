@@ -16,6 +16,7 @@ import PeopleIcon from '@mui/icons-material/People';
 import PersonIcon from '@mui/icons-material/Person';
 import AccountBalanceIcon from '@mui/icons-material/AccountBalance';
 import PaymentsIcon from '@mui/icons-material/Payments';
+import SchoolIcon from '@mui/icons-material/School';
 import { useAuth } from '../context/AuthContext';
 
 const Sidebar = () => {
@@ -67,6 +68,14 @@ const Sidebar = () => {
     console.log('Sidebar Avatar URL:', user.profileImage);
     return user.profileImage;
   };
+
+  const menuItems = [
+    {
+      text: 'Necə qazanırıq',
+      icon: <SchoolIcon />,
+      path: '/how-to-earn'
+    },
+  ];
 
   return (
     <Box 
