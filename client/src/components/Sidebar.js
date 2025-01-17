@@ -69,34 +69,6 @@ const Sidebar = () => {
     return user.profileImage;
   };
 
-  const menuItems = [
-    {
-      text: 'Dashboard',
-      icon: <AccountBalanceWalletIcon />,
-      path: '/dashboard'
-    },
-    {
-      text: 'Necə qazanırıq',
-      icon: <SchoolIcon />,
-      path: '/how-to-earn'
-    },
-    {
-      text: 'Pul Yüklə',
-      icon: <MonetizationOnIcon />,
-      path: '/deposit'
-    },
-    {
-      text: 'Pul Çək',
-      icon: <PaymentsIcon />,
-      path: '/withdraw'
-    },
-    {
-      text: 'Ödəmə Tarixçəsi',
-      icon: <CalendarMonthIcon />,
-      path: '/odeme-tarihcesi'
-    }
-  ];
-
   return (
     <Box 
       className="sidebar"
@@ -250,32 +222,6 @@ const Sidebar = () => {
               </Typography>
             </Box>
           </Box>
-        </Box>
-
-        <Divider sx={{ my: 2, width: '100%' }} />
-
-        <Box sx={{ width: '100%', px: 2 }}>
-          {menuItems.map((item) => (
-            <Box
-              key={item.path}
-              component="a"
-              href={item.path}
-              sx={{
-                display: 'flex',
-                alignItems: 'center',
-                p: 1.5,
-                textDecoration: 'none',
-                color: 'inherit',
-                '&:hover': {
-                  bgcolor: 'rgba(255, 255, 255, 0.08)',
-                  borderRadius: 1
-                }
-              }}
-            >
-              {item.icon}
-              <Typography sx={{ ml: 2 }}>{item.text}</Typography>
-            </Box>
-          ))}
         </Box>
       </Paper>
     </Box>
