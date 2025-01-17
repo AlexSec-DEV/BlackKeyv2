@@ -98,11 +98,21 @@ router.post('/profile/image', auth, upload.single('profileImage'), async (req, r
 
     // Cloudinary'ye yükle
     console.log('Cloudinary\'ye yükleniyor...');
-    const result = await cloudinary.uploader.upload(dataURI, {
-      folder: 'profiles',
-      resource_type: 'image'
-    });
-    console.log('Cloudinary yükleme sonucu:', result);
+    let result;
+    try {
+      result = await cloudinary.uploader.upload(dataURI, {
+        folder: 'profiles',
+        resource_type: 'image',
+        transformation: [
+          { width: 500, height: 500, crop: 'limit' },
+          { quality: 'auto:good' }
+        ]
+      });
+      console.log('Cloudinary yükleme sonucu:', result);
+    } catch (cloudinaryError) {
+      console.error('Cloudinary yükleme hatası:', cloudinaryError);
+      return res.status(500).json({ message: 'Resim yüklenirken bir hata oluştu' });
+    }
 
     // Eski profil resmini Cloudinary'den sil (varsayılan resim değilse)
     if (user.profileImage && user.profileImage.includes('cloudinary')) {
@@ -112,6 +122,7 @@ router.post('/profile/image', auth, upload.single('profileImage'), async (req, r
         console.log('Eski profil resmi Cloudinary\'den silindi');
       } catch (error) {
         console.error('Eski resim silinirken hata:', error);
+        // Eski resim silinmese bile devam et
       }
     }
 
@@ -142,6 +153,9 @@ router.put('/profile', auth, async (req, res) => {
 
     // Şifre değişikliği varsa kontrol et
     if (newPassword) {
+      if (!currentPassword) {
+        return res.status(400).json({ message: 'Mevcut şifre gerekli' });
+      }
       // Mevcut şifreyi kontrol et
       const isMatch = await user.comparePassword(currentPassword);
       if (!isMatch) {
@@ -151,9 +165,9 @@ router.put('/profile', auth, async (req, res) => {
     }
 
     // Diğer bilgileri güncelle
-    if (phoneNumber) user.phoneNumber = phoneNumber;
-    if (country) user.country = country;
-    if (birthDate) user.birthDate = birthDate;
+    if (phoneNumber !== undefined) user.phoneNumber = phoneNumber;
+    if (country !== undefined) user.country = country;
+    if (birthDate !== undefined) user.birthDate = birthDate;
 
     await user.save();
 
