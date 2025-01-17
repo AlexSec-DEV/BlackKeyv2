@@ -98,7 +98,7 @@ const Withdraw = () => {
       const res = await api.post('/transactions/withdraw', withdrawData);
       console.log('Para çekme cevabı:', res.data);
       await loadUser();
-      setSuccess('Çıxarma sorğunuz uğurla yaradıldı, əməliyyatınız təsdiqlənindən sonra tamamlanacaq');
+      setSuccess('Çıxarma sorğunuz uğurla yaradıldı, əməliyyatınız təsdiqləndikdən sonra tamamlanacaq');
       setFormData({
         amount: '',
         bankName: '',
@@ -310,7 +310,7 @@ const Withdraw = () => {
                   fullWidth
                   disabled={loading || !user?.balance || user?.balance < 10}
                 >
-                  {loading ? 'İşleniyor...' : 'Para Çek'}
+                  {loading ? 'İşleniyor...' : 'Pulu Çək'}
                 </Button>
               </Grid>
             </Grid>
