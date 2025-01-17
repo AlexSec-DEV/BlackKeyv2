@@ -187,19 +187,19 @@ const HowToEarn = () => {
             >
               {/* Geri ödənilən -> İstifadəçi */}
               <line
-                x1="350"
-                y1="90"
-                x2="750"
-                y2="90"
+                x1="320"
+                y1="40"
+                x2="800"
+                y2="40"
                 stroke="#800080"
                 strokeWidth="2"
               />
 
               {/* İstifadəçi -> Kasa */}
               <line
-                x1="750"
-                y1="130"
-                x2="750"
+                x1="800"
+                y1="40"
+                x2="800"
                 y2="160"
                 stroke="#800080"
                 strokeWidth="2"
@@ -207,9 +207,9 @@ const HowToEarn = () => {
 
               {/* Kasa -> Mutexessis İnvestorlar */}
               <line
-                x1="750"
-                y1="260"
-                x2="750"
+                x1="800"
+                y1="240"
+                x2="800"
                 y2="290"
                 stroke="#800080"
                 strokeWidth="2"
@@ -217,33 +217,33 @@ const HowToEarn = () => {
 
               {/* Mutexessis İnvestorlar -> Alt gruplar */}
               <line
-                x1="750"
+                x1="800"
                 y1="370"
-                x2="750"
-                y2="420"
+                x2="800"
+                y2="400"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="600"
-                y1="420"
-                x2="1000"
-                y2="420"
+                x1="550"
+                y1="400"
+                x2="1050"
+                y2="400"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="600"
-                y1="420"
-                x2="600"
+                x1="550"
+                y1="400"
+                x2="550"
                 y2="430"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="1000"
-                y1="420"
-                x2="1000"
+                x1="1050"
+                y1="400"
+                x2="1050"
                 y2="430"
                 stroke="#800080"
                 strokeWidth="2"
@@ -251,60 +251,52 @@ const HowToEarn = () => {
 
               {/* Alt gruplar -> Əldə olunan gəlir */}
               <line
-                x1="600"
+                x1="550"
                 y1="510"
-                x2="600"
-                y2="530"
+                x2="550"
+                y2="600"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="1000"
+                x1="1050"
                 y1="510"
-                x2="1000"
-                y2="530"
+                x2="1050"
+                y2="600"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="600"
-                y1="530"
-                x2="750"
-                y2="530"
-                stroke="#800080"
-                strokeWidth="2"
-              />
-              <line
-                x1="750"
-                y1="530"
-                x2="1000"
-                y2="530"
+                x1="550"
+                y1="600"
+                x2="800"
+                y2="600"
                 stroke="#800080"
                 strokeWidth="2"
               />
 
               {/* Açıklama kutusu bağlantıları */}
               <line
-                x1="300"
-                y1="380"
-                x2="300"
-                y2="90"
+                x1="320"
+                y1="40"
+                x2="320"
+                y2="380"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="300"
+                x1="320"
                 y1="480"
-                x2="300"
-                y2="530"
+                x2="320"
+                y2="600"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="300"
-                y1="530"
-                x2="600"
-                y2="530"
+                x1="320"
+                y1="600"
+                x2="550"
+                y2="600"
                 stroke="#800080"
                 strokeWidth="2"
               />
