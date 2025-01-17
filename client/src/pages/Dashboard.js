@@ -378,7 +378,7 @@ const Dashboard = () => {
                   fontSize: { xs: '1.25rem', md: '1.5rem' }
                 }}
               >
-                Yeni Kasa Aç
+                Təzə Kasa Al
               </Typography>
             </Box>
 
@@ -440,7 +440,7 @@ const Dashboard = () => {
                             }
                           }}
                         >
-                          SATIN AL
+                          Kasanı Al
                         </Button>
                       </Box>
 
