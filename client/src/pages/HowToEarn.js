@@ -30,7 +30,7 @@ const HowToEarn = () => {
             minHeight: '80vh'
           }}>
             <img 
-              src="https://res.cloudinary.com/blackkey/image/upload/v1/neceqazaniriq/ngnatk0ycsu4fjtjdxaz" 
+              src="https://res.cloudinary.com/blackkey/image/upload/neceqazaniriq/ngnatk0ycsu4fjtjdxaz.png" 
               alt="Necə qazanırıq?"
               style={{
                 maxWidth: '100%',
