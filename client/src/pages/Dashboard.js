@@ -319,7 +319,7 @@ const Dashboard = () => {
                                 Qalan Müddət: {remainingDays} gün
                               </Typography>
                               <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
-                                Vəziyyət: {remainingDays > 0 ? 'Kilidli' : 'Tamamlandı'}
+                                Vəziyyət: {remainingDays > 0 ? 'Kilidli' : 'Kasa vaxtı bitib'}
                               </Typography>
                             </Box>
 
@@ -337,7 +337,7 @@ const Dashboard = () => {
                                 }}
                               />
                               <Typography sx={{ color: '#fff', fontSize: '0.8rem', mt: 1, textAlign: 'center' }}>
-                                {Math.round(progress)}% Tamamlandı
+                                {Math.round(progress)}% Yükləmə
                               </Typography>
                             </Box>
 
