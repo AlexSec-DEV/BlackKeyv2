@@ -23,216 +23,227 @@ const HowToEarn = () => {
         }}
       >
         <Container maxWidth="lg">
-          <Paper 
-            elevation={3} 
-            sx={{ 
-              p: 3, 
-              bgcolor: '#889799',
-              color: '#fff',
-              borderRadius: 2
-            }}
-          >
-            <Typography variant="h4" sx={{ mb: 4, textAlign: 'center', color: '#4CAF50' }}>
-              Necə qazanırıq?
-            </Typography>
-
-            <Box sx={{ 
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: 3,
-              position: 'relative'
+          <Box sx={{ 
+            position: 'relative',
+            minHeight: '600px',
+            display: 'flex',
+            justifyContent: 'center',
+            pt: 4
+          }}>
+            {/* Geri ödənilən kutusu - Sol üst */}
+            <Paper sx={{ 
+              p: 2, 
+              bgcolor: '#2a2a2a',
+              width: '200px',
+              position: 'absolute',
+              left: '10%',
+              top: '50px',
+              textAlign: 'center'
             }}>
-              {/* İlk Kutu - Geri Ödənilən */}
-              <Paper sx={{ 
-                p: 2, 
-                bgcolor: '#2a2a2a',
+              <Typography sx={{ color: '#4CAF50' }}>
+                Geri ödənilən
+              </Typography>
+              <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                Yatırılan Pul: 500 AZN
+              </Typography>
+              <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                Qazanılan Pul: 50 AZN
+              </Typography>
+              <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                Bonus: 50-100 AZN
+              </Typography>
+              <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                CƏMİ: 650 AZN
+              </Typography>
+            </Paper>
+
+            {/* İstifadəçi kutusu - Sağ üst */}
+            <Paper sx={{ 
+              p: 2, 
+              bgcolor: '#2a2a2a',
+              width: '150px',
+              position: 'absolute',
+              right: '20%',
+              top: '50px',
+              textAlign: 'center'
+            }}>
+              <Typography sx={{ color: '#4CAF50' }}>
+                İstifadəçi
+              </Typography>
+            </Paper>
+
+            {/* Kasa kutusu - Merkez */}
+            <Paper sx={{ 
+              p: 2, 
+              bgcolor: '#2a2a2a',
+              width: '150px',
+              position: 'absolute',
+              right: '20%',
+              top: '180px',
+              textAlign: 'center'
+            }}>
+              <Typography sx={{ color: '#4CAF50' }}>
+                Kasa
+              </Typography>
+              <Typography sx={{ color: '#fff' }}>
+                500 AZN
+              </Typography>
+              <Typography sx={{ color: '#4CAF50' }}>
+                10%
+              </Typography>
+            </Paper>
+
+            {/* Mutexessis İnvestorlar kutusu */}
+            <Paper sx={{ 
+              p: 2, 
+              bgcolor: '#2a2a2a',
+              width: '150px',
+              position: 'absolute',
+              right: '20%',
+              top: '310px',
+              textAlign: 'center'
+            }}>
+              <Typography sx={{ color: '#4CAF50' }}>
+                Mutexessis İnvestorlar
+              </Typography>
+            </Paper>
+
+            {/* Kripto Valyutalar kutusu */}
+            <Paper sx={{ 
+              p: 2, 
+              bgcolor: '#2a2a2a',
+              width: '150px',
+              position: 'absolute',
+              right: '40%',
+              top: '400px',
+              textAlign: 'center'
+            }}>
+              <Typography sx={{ color: '#4CAF50' }}>
+                Kripto Valyutalar
+              </Typography>
+            </Paper>
+
+            {/* Səhimlər kutusu */}
+            <Paper sx={{ 
+              p: 2, 
+              bgcolor: '#2a2a2a',
+              width: '200px',
+              position: 'absolute',
+              right: '0%',
+              top: '400px',
+              textAlign: 'center'
+            }}>
+              <Typography sx={{ color: '#4CAF50' }}>
+                Səhimlər:
+              </Typography>
+              <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
+                Apple, Facebook, SOCAR
+              </Typography>
+            </Paper>
+
+            {/* Əldə olunan gəlir kutusu */}
+            <Paper sx={{ 
+              p: 2, 
+              bgcolor: '#2a2a2a',
+              width: '150px',
+              position: 'absolute',
+              right: '20%',
+              top: '500px',
+              textAlign: 'center'
+            }}>
+              <Typography sx={{ color: '#4CAF50' }}>
+                Əldə olunan gəlir
+              </Typography>
+              <Typography sx={{ color: '#fff' }}>
+                1400 AZN
+              </Typography>
+            </Paper>
+
+            {/* Açıklama kutusu - Sol alt */}
+            <Paper sx={{ 
+              p: 2, 
+              bgcolor: '#2a2a2a',
+              width: '300px',
+              position: 'absolute',
+              left: '10%',
+              top: '400px',
+              textAlign: 'center'
+            }}>
+              <Typography sx={{ color: '#4CAF50', fontSize: '0.9rem' }}>
+                İstifadəçiyə verilən qazanc miqdarı yatırım etdiyi miqdara və kasanın faizləri görə hesablanaraq avtomatik şəkildə yatırım etdiyi pul ilə birlikdə geri qaytarılır.
+              </Typography>
+            </Paper>
+
+            {/* Çizgiler */}
+            <svg
+              style={{
+                position: 'absolute',
+                top: 0,
+                left: 0,
                 width: '100%',
-                maxWidth: 300,
-                textAlign: 'center'
-              }}>
-                <Typography sx={{ color: '#4CAF50' }}>
-                  Geri ödənilən
-                </Typography>
-                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
-                  Yatırılan Pul: 500 AZN
-                </Typography>
-                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
-                  Qazanılan Pul: 50 AZN
-                </Typography>
-                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
-                  Bonus: 50-100 AZN
-                </Typography>
-                <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
-                  CƏMİ: 650 AZN
-                </Typography>
-              </Paper>
+                height: '100%',
+                pointerEvents: 'none'
+              }}
+            >
+              {/* Geri ödənilən -> İstifadəçi */}
+              <line
+                x1="30%"
+                y1="100px"
+                x2="70%"
+                y2="100px"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
 
-              {/* Dikey çizgi */}
-              <Box sx={{ 
-                width: '2px', 
-                height: '50px', 
-                bgcolor: '#4CAF50',
-                position: 'relative'
-              }} />
+              {/* İstifadəçi -> Kasa (dikey) */}
+              <line
+                x1="80%"
+                y1="120px"
+                x2="80%"
+                y2="180px"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
 
-              {/* İstifadəçi */}
-              <Paper sx={{ 
-                p: 2, 
-                bgcolor: '#2a2a2a',
-                width: '100%',
-                maxWidth: 200,
-                textAlign: 'center'
-              }}>
-                <Typography sx={{ color: '#4CAF50' }}>
-                  İstifadəçi
-                </Typography>
-              </Paper>
+              {/* Kasa -> Mutexessis İnvestorlar (dikey) */}
+              <line
+                x1="80%"
+                y1="250px"
+                x2="80%"
+                y2="310px"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
 
-              {/* Dikey çizgi */}
-              <Box sx={{ 
-                width: '2px', 
-                height: '50px', 
-                bgcolor: '#4CAF50',
-                position: 'relative'
-              }} />
+              {/* Mutexessis İnvestorlar -> Kripto ve Səhimlər */}
+              <line
+                x1="80%"
+                y1="360px"
+                x2="80%"
+                y2="400px"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
+              <line
+                x1="60%"
+                y1="400px"
+                x2="100%"
+                y2="400px"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
 
-              {/* Kasa */}
-              <Paper sx={{ 
-                p: 2, 
-                bgcolor: '#2a2a2a',
-                width: '100%',
-                maxWidth: 200,
-                textAlign: 'center'
-              }}>
-                <Typography sx={{ color: '#4CAF50' }}>
-                  Kasa
-                </Typography>
-                <Typography sx={{ color: '#fff' }}>
-                  500 AZN
-                </Typography>
-                <Typography sx={{ color: '#4CAF50' }}>
-                  10%
-                </Typography>
-              </Paper>
-
-              {/* Dikey çizgi */}
-              <Box sx={{ 
-                width: '2px', 
-                height: '50px', 
-                bgcolor: '#4CAF50',
-                position: 'relative'
-              }} />
-
-              {/* Alt Gruplar */}
-              <Box sx={{ 
-                display: 'flex',
-                justifyContent: 'space-around',
-                width: '100%',
-                gap: 2,
-                flexWrap: 'wrap',
-                position: 'relative'
-              }}>
-                {/* Yatay çizgiler */}
-                <Box sx={{
-                  position: 'absolute',
-                  top: '50%',
-                  left: '20%',
-                  right: '20%',
-                  height: '2px',
-                  bgcolor: '#4CAF50',
-                  zIndex: 0
-                }} />
-
-                {/* Mutexessis İnvestorlar */}
-                <Paper sx={{ 
-                  p: 2, 
-                  bgcolor: '#2a2a2a',
-                  minWidth: 200,
-                  textAlign: 'center',
-                  zIndex: 1
-                }}>
-                  <Typography sx={{ color: '#4CAF50' }}>
-                    Mutexessis İnvestorlar
-                  </Typography>
-                </Paper>
-
-                {/* Kripto Valyutalar */}
-                <Paper sx={{ 
-                  p: 2, 
-                  bgcolor: '#2a2a2a',
-                  minWidth: 200,
-                  textAlign: 'center',
-                  zIndex: 1
-                }}>
-                  <Typography sx={{ color: '#4CAF50' }}>
-                    Kripto Valyutalar
-                  </Typography>
-                </Paper>
-
-                {/* Səhimlər */}
-                <Paper sx={{ 
-                  p: 2, 
-                  bgcolor: '#2a2a2a',
-                  minWidth: 200,
-                  textAlign: 'center',
-                  zIndex: 1
-                }}>
-                  <Typography sx={{ color: '#4CAF50' }}>
-                    Səhimlər:
-                  </Typography>
-                  <Typography sx={{ color: '#fff', fontSize: '0.9rem' }}>
-                    Apple, Facebook, SOCAR
-                  </Typography>
-                </Paper>
-              </Box>
-
-              {/* Dikey çizgi */}
-              <Box sx={{ 
-                width: '2px', 
-                height: '50px', 
-                bgcolor: '#4CAF50',
-                position: 'relative'
-              }} />
-
-              {/* Əldə olunan gəlir */}
-              <Paper sx={{ 
-                p: 2, 
-                bgcolor: '#2a2a2a',
-                width: '100%',
-                maxWidth: 200,
-                textAlign: 'center'
-              }}>
-                <Typography sx={{ color: '#4CAF50' }}>
-                  Əldə olunan gəlir
-                </Typography>
-                <Typography sx={{ color: '#fff' }}>
-                  1400 AZN
-                </Typography>
-              </Paper>
-
-              {/* Dikey çizgi */}
-              <Box sx={{ 
-                width: '2px', 
-                height: '50px', 
-                bgcolor: '#4CAF50',
-                position: 'relative'
-              }} />
-
-              {/* İstifadəçiyə verilən qazanc açıklaması */}
-              <Paper sx={{ 
-                p: 2, 
-                bgcolor: '#2a2a2a',
-                width: '100%',
-                maxWidth: 400,
-                textAlign: 'center'
-              }}>
-                <Typography sx={{ color: '#4CAF50', fontSize: '0.9rem' }}>
-                  İstifadəçiyə verilən qazanc miqdarı yatırım etdiyi miqdara və kasanın faizləri görə hesablanaraq avtomatik şəkildə yatırım etdiyi pul ilə birlikdə geri qaytarılır.
-                </Typography>
-              </Paper>
-            </Box>
-          </Paper>
+              {/* Alt gruplar -> Əldə olunan gəlir */}
+              <line
+                x1="80%"
+                y1="450px"
+                x2="80%"
+                y2="500px"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
+            </svg>
+          </Box>
         </Container>
       </Box>
     </Box>
