@@ -187,19 +187,19 @@ const HowToEarn = () => {
             >
               {/* Geri ödənilən -> İstifadəçi */}
               <line
-                x1="350"
-                y1="100"
+                x1="300"
+                y1="80"
                 x2="850"
-                y2="100"
+                y2="80"
                 stroke="#800080"
                 strokeWidth="2"
               />
 
               {/* İstifadəçi -> Kasa */}
               <line
-                x1="900"
-                y1="130"
-                x2="900"
+                x1="850"
+                y1="80"
+                x2="850"
                 y2="180"
                 stroke="#800080"
                 strokeWidth="2"
@@ -207,9 +207,9 @@ const HowToEarn = () => {
 
               {/* Kasa -> Mutexessis İnvestorlar */}
               <line
-                x1="900"
-                y1="260"
-                x2="900"
+                x1="850"
+                y1="240"
+                x2="850"
                 y2="310"
                 stroke="#800080"
                 strokeWidth="2"
@@ -217,78 +217,86 @@ const HowToEarn = () => {
 
               {/* Mutexessis İnvestorlar -> Alt gruplar */}
               <line
-                x1="900"
+                x1="850"
                 y1="370"
-                x2="900"
-                y2="400"
+                x2="850"
+                y2="420"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="600"
-                y1="400"
-                x2="1100"
-                y2="400"
+                x1="650"
+                y1="420"
+                x2="1050"
+                y2="420"
+                stroke="#800080"
+                strokeWidth="2"
+              />
+              <line
+                x1="650"
+                y1="420"
+                x2="650"
+                y2="450"
+                stroke="#800080"
+                strokeWidth="2"
+              />
+              <line
+                x1="1050"
+                y1="420"
+                x2="1050"
+                y2="450"
                 stroke="#800080"
                 strokeWidth="2"
               />
 
               {/* Alt gruplar -> Əldə olunan gəlir */}
               <line
-                x1="600"
-                y1="400"
-                x2="600"
-                y2="500"
+                x1="650"
+                y1="510"
+                x2="650"
+                y2="580"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="1100"
-                y1="400"
-                x2="1100"
-                y2="500"
+                x1="1050"
+                y1="510"
+                x2="1050"
+                y2="580"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="600"
-                y1="500"
-                x2="900"
-                y2="500"
-                stroke="#800080"
-                strokeWidth="2"
-              />
-              <line
-                x1="900"
-                y1="500"
-                x2="1100"
-                y2="500"
+                x1="650"
+                y1="580"
+                x2="850"
+                y2="580"
                 stroke="#800080"
                 strokeWidth="2"
               />
 
               {/* Açıklama kutusu bağlantıları */}
               <line
-                x1="350"
-                y1="100"
-                x2="350"
-                y2="400"
+                x1="300"
+                y1="400"
+                x2="300"
+                y2="80"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="350"
-                y1="500"
-                x2="350"
-                y2="600"
+                x1="300"
+                y1="400"
+                x2="300"
+                y2="580"
                 stroke="#800080"
                 strokeWidth="2"
               />
               <line
-                x1="350"
-                y1="600"
-                x2="900"
-                y2="600"
+                x1="300"
+                y1="580"
+                x2="650"
+                y2="580"
                 stroke="#800080"
                 strokeWidth="2"
               />
