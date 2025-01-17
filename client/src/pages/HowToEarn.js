@@ -115,7 +115,7 @@ const HowToEarn = () => {
               width: '150px',
               position: 'absolute',
               right: '40%',
-              top: '400px',
+              top: '450px',
               textAlign: 'center'
             }}>
               <Typography sx={{ color: '#4CAF50' }}>
@@ -130,7 +130,7 @@ const HowToEarn = () => {
               width: '200px',
               position: 'absolute',
               right: '0%',
-              top: '400px',
+              top: '450px',
               textAlign: 'center'
             }}>
               <Typography sx={{ color: '#4CAF50' }}>
@@ -148,7 +148,7 @@ const HowToEarn = () => {
               width: '150px',
               position: 'absolute',
               right: '20%',
-              top: '500px',
+              top: '550px',
               textAlign: 'center'
             }}>
               <Typography sx={{ color: '#4CAF50' }}>
@@ -186,77 +186,127 @@ const HowToEarn = () => {
               }}
             >
               {/* Geri ödənilən -> İstifadəçi */}
-              <path
-                d="M 300,75 Q 450,75 600,75"
+              <line
+                x1="300"
+                y1="75"
+                x2="800"
+                y2="75"
                 stroke="#4CAF50"
                 strokeWidth="2"
-                fill="none"
               />
 
               {/* İstifadəçi -> Kasa */}
               <line
-                x1="80%"
-                y1="120px"
-                x2="80%"
-                y2="180px"
+                x1="800"
+                y1="120"
+                x2="800"
+                y2="180"
                 stroke="#4CAF50"
                 strokeWidth="2"
               />
 
               {/* Kasa -> Mutexessis İnvestorlar */}
               <line
-                x1="80%"
-                y1="250px"
-                x2="80%"
-                y2="310px"
+                x1="800"
+                y1="250"
+                x2="800"
+                y2="310"
                 stroke="#4CAF50"
                 strokeWidth="2"
               />
 
-              {/* Mutexessis İnvestorlar -> Kripto ve Səhimlər */}
-              <path
-                d="M 800,360 Q 800,400 700,400 L 500,400"
+              {/* Mutexessis İnvestorlar -> Alt gruplar */}
+              <line
+                x1="800"
+                y1="360"
+                x2="800"
+                y2="400"
                 stroke="#4CAF50"
                 strokeWidth="2"
-                fill="none"
               />
-              <path
-                d="M 800,360 Q 800,400 900,400 L 1000,400"
+              <line
+                x1="600"
+                y1="400"
+                x2="1000"
+                y2="400"
                 stroke="#4CAF50"
                 strokeWidth="2"
-                fill="none"
               />
-
-              {/* Kripto -> Əldə olunan gəlir */}
-              <path
-                d="M 600,450 Q 600,500 800,500"
+              <line
+                x1="600"
+                y1="400"
+                x2="600"
+                y2="450"
                 stroke="#4CAF50"
                 strokeWidth="2"
-                fill="none"
               />
-
-              {/* Səhimlər -> Əldə olunan gəlir */}
-              <path
-                d="M 1000,450 Q 1000,500 800,500"
+              <line
+                x1="1000"
+                y1="400"
+                x2="1000"
+                y2="450"
                 stroke="#4CAF50"
                 strokeWidth="2"
-                fill="none"
-              />
-
-              {/* Açıklama kutusu -> Geri ödənilən */}
-              <path
-                d="M 300,400 Q 300,300 300,75"
-                stroke="#4CAF50"
-                strokeWidth="2"
-                fill="none"
               />
 
-              {/* Açıklama kutusu -> Əldə olunan gəlir */}
-              <path
-                d="M 300,400 Q 300,500 800,500"
+              {/* Alt gruplar -> Əldə olunan gəlir */}
+              <line
+                x1="600"
+                y1="500"
+                x2="600"
+                y2="550"
                 stroke="#4CAF50"
                 strokeWidth="2"
-                fill="none"
+              />
+              <line
+                x1="1000"
+                y1="500"
+                x2="1000"
+                y2="550"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
+              <line
+                x1="600"
+                y1="550"
+                x2="800"
+                y2="550"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
+              <line
+                x1="800"
+                y1="550"
+                x2="1000"
+                y2="550"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
+
+              {/* Açıklama kutusu bağlantıları */}
+              <line
+                x1="300"
+                y1="400"
+                x2="300"
+                y2="75"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
+              <line
+                x1="300"
+                y1="400"
+                x2="300"
+                y2="550"
+                stroke="#4CAF50"
+                strokeWidth="2"
+              />
+              <line
+                x1="300"
+                y1="550"
+                x2="600"
+                y2="550"
+                stroke="#4CAF50"
+                strokeWidth="2"
               />
             </svg>
           </Box>
