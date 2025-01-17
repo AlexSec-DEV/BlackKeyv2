@@ -34,12 +34,24 @@ router.post('/deposit', auth, upload.single('receipt'), async (req, res) => {
       return res.status(400).json({ message: 'Makbuz yüklemesi gerekli' });
     }
 
+    // Dosyayı base64'e çevir
+    const base64File = req.file.buffer.toString('base64');
+    const dataURI = `data:${req.file.mimetype};base64,${base64File}`;
+
+    // Cloudinary'ye yükle
+    console.log('Cloudinary\'ye yükleniyor...');
+    const result = await cloudinary.uploader.upload(dataURI, {
+      folder: 'receipts',
+      resource_type: 'image'
+    });
+    console.log('Cloudinary yükleme sonucu:', result);
+
     const transaction = new Transaction({
       user: req.user.id,
       type: 'DEPOSIT',
       amount: parseFloat(amount),
       paymentMethod,
-      receiptUrl: '/receipts/' + req.file.filename,
+      receiptUrl: result.secure_url,
       status: 'PENDING'
     });
 
@@ -48,9 +60,6 @@ router.post('/deposit', auth, upload.single('receipt'), async (req, res) => {
     res.status(201).json(transaction);
   } catch (error) {
     console.error('Para yatırma hatası:', error);
-    if (req.file) {
-      fs.unlinkSync(req.file.path);
-    }
     res.status(500).json({ message: 'Server error', error: error.message });
   }
 });
